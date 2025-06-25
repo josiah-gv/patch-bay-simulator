@@ -72,16 +72,25 @@ function draw() {
   }
 
   ports.forEach(p => {
-    fill(100);
+    if (isPortConnected(p)) {
+      fill(150, 100, 100); // red tint for connected ports
+    } else if (activeCable && p !== activeCable && dist(p.x, p.y, mouseX, mouseY) < safeZoneRadius) {
+      fill(100, 200, 100); // green highlight for available port
+    } else {
+      fill(100);
+    }
     noStroke();
     circle(p.x, p.y, portRadius * 2);
   });
 }
 
+function isPortConnected(port) {
+  return connections.some(conn => conn.a === port || conn.b === port);
+}
+
 function mousePressed() {
-  if (getPortAt(mouseX, mouseY, safeZoneRadius)) {
-    // Handle port connection below
-  } else if (hoverConnection) {
+  // Check if we're hovering over a connection to delete it
+  if (hoverConnection) {
     const index = connections.indexOf(hoverConnection);
     if (index !== -1) connections.splice(index, 1);
     return;
@@ -90,9 +99,13 @@ function mousePressed() {
   const p = getPortAt(mouseX, mouseY, safeZoneRadius);
   if (p) {
     if (!activeCable) {
-      activeCable = p;
+      // Start a new cable from this port if it's not already connected
+      if (!isPortConnected(p)) {
+        activeCable = p;
+      }
     } else {
-      if (p !== activeCable) {
+      // Only connect if the target port is not the same as the source and not already connected
+      if (p !== activeCable && !isPortConnected(p)) {
         connections.push({ a: activeCable, b: p });
       }
       activeCable = null;
