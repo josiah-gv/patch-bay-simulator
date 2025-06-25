@@ -13,6 +13,19 @@ let controlOffsetY = 0;
 let controlOffsetX = 0;
 let hoverConnection = null;
 
+// Define some cable colors to use
+const cableColors = [
+  [100, 200, 255], // blue
+  [255, 100, 100], // red
+  [100, 255, 100], // green
+  [255, 255, 100], // yellow
+  [255, 100, 255], // magenta
+  [100, 255, 255]  // cyan
+];
+
+// Current color index for new cables
+let currentColorIndex = 0;
+
 function setup() {
   createCanvas(1000, 400);
   document.body.style.backgroundColor = '#222222'; // set dark grey page background
@@ -57,27 +70,41 @@ function draw() {
   connections.forEach(conn => {
     const isHovering = isMouseNearBezierSegments(conn.a, conn.b, 0, 0, 12);
     const inSafeZone = getPortAt(mouseX, mouseY, safeZoneRadius);
+    
     if (isHovering && !inSafeZone) {
-      stroke(255, 100, 100); // red highlight only if not in safe zone
+      // Use a red highlight for cables that can be deleted
+      stroke(255, 100, 100);
       hoverConnection = conn;
     } else {
-      stroke(100, 200, 255);
+      // Use the cable's stored color
+      const cableColor = conn.color || cableColors[0]; // Default to first color if none stored
+      stroke(cableColor[0], cableColor[1], cableColor[2]);
     }
     drawCable(conn.a, conn.b);
   });
 
   if (activeCable) {
-    stroke(200, 200, 255);
+    // Use the next color in the sequence for the active cable
+    const nextColor = cableColors[currentColorIndex];
+    stroke(nextColor[0], nextColor[1], nextColor[2]);
     drawCable(activeCable, { x: cursorX, y: cursorY }, controlOffsetY, controlOffsetX);
   }
 
   ports.forEach(p => {
     if (isPortConnected(p)) {
-      fill(150, 100, 100); // red tint for connected ports
+      // Find the connection this port belongs to
+      const conn = connections.find(c => c.a === p || c.b === p);
+      if (conn && conn.color) {
+        // Use the cable's color for the port, but slightly darker
+        fill(conn.color[0] * 0.8, conn.color[1] * 0.8, conn.color[2] * 0.8);
+      } else {
+        // Fallback if no color found
+        fill(150, 100, 100);
+      }
     } else if (activeCable && p !== activeCable && dist(p.x, p.y, mouseX, mouseY) < safeZoneRadius) {
       fill(100, 200, 100); // green highlight for available port
     } else {
-      fill(100);
+      fill(100); // default gray for unconnected ports
     }
     noStroke();
     circle(p.x, p.y, portRadius * 2);
@@ -106,7 +133,15 @@ function mousePressed() {
     } else {
       // Only connect if the target port is not the same as the source and not already connected
       if (p !== activeCable && !isPortConnected(p)) {
-        connections.push({ a: activeCable, b: p });
+        // Create a new connection with the current color
+        connections.push({ 
+          a: activeCable, 
+          b: p, 
+          color: cableColors[currentColorIndex]
+        });
+        
+        // Cycle to the next color for the next cable
+        currentColorIndex = (currentColorIndex + 1) % cableColors.length;
       }
       activeCable = null;
       controlOffsetY = 0;
