@@ -71,13 +71,15 @@ function draw() {
     const isHovering = isMouseNearBezierSegments(conn.a, conn.b, 0, 0, 12);
     const inSafeZone = getPortAt(mouseX, mouseY, safeZoneRadius);
     
+    // Get the cable's color
+    const cableColor = conn.color || cableColors[0]; // Default to first color if none stored
+    
     if (isHovering && !inSafeZone) {
-      // Use a red highlight for cables that can be deleted
-      stroke(255, 100, 100);
+      // Use a darker shade of the cable's color for deletion hover
+      stroke(cableColor[0] * 0.6, cableColor[1] * 0.6, cableColor[2] * 0.6);
       hoverConnection = conn;
     } else {
-      // Use the cable's stored color
-      const cableColor = conn.color || cableColors[0]; // Default to first color if none stored
+      // Use the cable's normal color
       stroke(cableColor[0], cableColor[1], cableColor[2]);
     }
     drawCable(conn.a, conn.b);
