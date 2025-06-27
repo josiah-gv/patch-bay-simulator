@@ -1,10 +1,10 @@
 // Configuration constants
-const portRadius = 5; // Reduced from 8 to prevent overlapping selection areas
-const safeZoneRadius = 24; // safe zone radius for deletion prevention
-const margin = 40;
-const portSpacing = 20; // horizontal spacing between ports
-const rowSpacing = 40; // vertical spacing between port rows
-const sectionSpacing = 60; // vertical spacing between sections
+const portRadius = 7; // Increased by 30% from 5, rounded up
+const safeZoneRadius = 31; // Increased by 30% from 24, rounded
+const margin = 65; // Further increased from 52 for more padding
+const portSpacing = 26; // Increased by 30% from 20
+const rowSpacing = 60; // Further increased from 52 for more vertical padding
+const sectionSpacing = 90; // Further increased from 78 for more horizontal padding between sections
 const midGapWidth = portSpacing; // width of gap between columns 24 and 25
 
 // State variables
@@ -18,8 +18,8 @@ let prevCursorX = 0, prevCursorY = 0;
 let controlOffsetY = 0;
 let controlOffsetX = 0;
 let hoverConnection = null;
-let canvasWidth = 1200;
-let canvasHeight = 600;
+let canvasWidth = 1560; // Increased by 30% from 1200
+let canvasHeight = 780; // Increased by 30% from 600
 
 // Define some cable colors to use
 const cableColors = [
@@ -398,20 +398,16 @@ function draw() {
     prevCursorX = cursorX;
     prevCursorY = cursorY;
 
-    // Draw room title
-    textSize(24);
-    textAlign(CENTER, TOP);
-    fill(255);
-    text(currentRoom.name, width / 2, margin / 2);
+    // Room title is now drawn in drawLabelsAndNumbers() function
 
     // Draw group labels and channel numbers
     drawLabelsAndNumbers();
 
     // Draw connections
-    strokeWeight(4);
+    strokeWeight(5); // Increased by 30% from 4, rounded
     noFill();
     connections.forEach(conn => {
-      const isHovering = isMouseNearBezierSegments(conn.a, conn.b, 0, 0, 12);
+      const isHovering = isMouseNearBezierSegments(conn.a, conn.b, 0, 0, 16); // Increased threshold by 30% from 12
       // Use a smaller radius for more precise port detection
       const inSafeZone = getPortAt(mouseX, mouseY, portRadius * 3);
       
@@ -487,12 +483,14 @@ function drawLabelsAndNumbers() {
   try {
     // Draw room title
     fill(255);
-    textSize(24);
+    textSize(31); // Increased by 30% from 24
     textAlign(CENTER, TOP);
-    text(currentRoom.name, canvasWidth / 2, margin / 2);
+    textStyle(BOLD); // Make room title bold
+    text(currentRoom.name, canvasWidth / 2, margin / 4); // Further adjusted for more padding
+    textStyle(NORMAL); // Reset text style
     
     // Set text properties for labels and numbers
-    textSize(12);
+    textSize(16); // Increased by 30% from 12
     textAlign(CENTER, CENTER);
     
     // Check if we have ports to draw
@@ -536,14 +534,16 @@ function drawLabelsAndNumbers() {
           const centerX = (firstPort.x + lastPort.x) / 2;
           
           fill(200, 200, 255);
-          text(label, centerX, firstPort.y - 25);
+          textStyle(BOLD); // Make group labels bold
+          text(label, centerX, firstPort.y - 40); // Further increased distance for more padding
+          textStyle(NORMAL); // Reset text style
         });
         
         // Channel numbers
         section.top.forEach(port => {
           if (port.channelNumber) {
             fill(180, 180, 180);
-            text(port.channelNumber, port.x, port.y - 15);
+            text(port.channelNumber, port.x, port.y - 24); // Further increased distance for more padding
           }
         });
       }
@@ -563,14 +563,16 @@ function drawLabelsAndNumbers() {
           const centerX = (firstPort.x + lastPort.x) / 2;
           
           fill(200, 200, 255);
-          text(label, centerX, firstPort.y + 25);
+          textStyle(BOLD); // Make group labels bold
+          text(label, centerX, firstPort.y + 40); // Further increased distance for more padding
+          textStyle(NORMAL); // Reset text style
         });
         
         // Channel numbers
         section.bottom.forEach(port => {
           if (port.channelNumber) {
             fill(180, 180, 180);
-            text(port.channelNumber, port.x, port.y + 15);
+            text(port.channelNumber, port.x, port.y + 24); // Further increased distance for more padding
           }
         });
       }
@@ -685,7 +687,7 @@ function getPortAt(x, y, radius = portRadius) {
 
 function isMouseNearBezierSegments(a, b, offsetY, offsetX, threshold) {
   const samples = 50;
-  const sag = 30 + Math.abs(a.x - b.x) * 0.05;
+  const sag = 39 + Math.abs(a.x - b.x) * 0.065; // Increased by 30% from 30 and 0.05
   let points = [];
   for (let t = 0; t <= 1; t += 1 / samples) {
     const x = bezierPoint(a.x, lerp(a.x, b.x, 0.25) + offsetX, lerp(a.x, b.x, 0.75) + offsetX, b.x, t);
@@ -730,7 +732,7 @@ function distToSegment(p, a, b) {
 }
 
 function drawCable(a, b, offsetY = 0, offsetX = 0) {
-  const sag = 30 + Math.abs(a.x - b.x) * 0.05;
+  const sag = 39 + Math.abs(a.x - b.x) * 0.065; // Increased by 30% from 30 and 0.05
 
   const cp1X = lerp(a.x, b.x, 0.25) + offsetX;
   const cp2X = lerp(a.x, b.x, 0.75) + offsetX;
