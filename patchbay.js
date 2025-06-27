@@ -197,7 +197,6 @@ function parseRoomCSV(csvText, roomName) {
 // Function to parse group labels from a row
 function parseGroupLabels(row) {
   if (!row || !Array.isArray(row)) {
-    console.warn('Invalid row passed to parseGroupLabels:', row);
     return [];
   }
   
@@ -206,51 +205,50 @@ function parseGroupLabels(row) {
   const groups = [];
   let currentGroup = null;
   
+  // Track label occurrences to add unique identifiers to duplicates
+  const labelCounts = {};
+  
+  // Process each cell in the row
   for (let i = 0; i < row.length; i++) {
-    // Safely access and trim the cell
     const cell = row[i] ? (typeof row[i] === 'string' ? row[i].trim() : String(row[i])) : '';
     
-    if (cell === '') continue;
-    
-    console.log(`Cell ${i}: '${cell}'`);
-    
     if (cell.toLowerCase() === 'end') {
-      // End the current group
+      // If we encounter 'END', include this cell with the previous group
       if (currentGroup) {
-        currentGroup.endIndex = i - 1;
-        groups.push(currentGroup);
-        console.log(`Ended group '${currentGroup.label}' at index ${currentGroup.endIndex}`);
-        currentGroup = null;
+        currentGroup.endIndex = i;
+        console.log(`Extended group '${currentGroup.label}' to include END marker at index ${i}`);
       }
-    } else if (!currentGroup) {
-      // Start a new group
-      currentGroup = {
-        label: cell,
-        startIndex: i,
-        endIndex: null
-      };
-      console.log(`Started new group '${cell}' at index ${i}`);
-    } else if (currentGroup && currentGroup.endIndex === null) {
-      // If we encounter a new label before an 'end', the previous group ends at the previous column
-      currentGroup.endIndex = i - 1;
-      groups.push(currentGroup);
-      console.log(`Ended group '${currentGroup.label}' at index ${currentGroup.endIndex} (new group found)`);
-      
-      // Start a new group
-      currentGroup = {
-        label: cell,
-        startIndex: i,
-        endIndex: null
-      };
-      console.log(`Started new group '${cell}' at index ${i}`);
+      continue;
     }
-  }
-  
-  // If we have an open group at the end, close it at the last column
-  if (currentGroup && currentGroup.endIndex === null) {
-    currentGroup.endIndex = row.length - 1;
-    groups.push(currentGroup);
-    console.log(`Ended group '${currentGroup.label}' at index ${currentGroup.endIndex} (end of row)`);
+    
+    if (cell !== '') {
+      // Found a cell with text - create a new group
+      console.log(`Found label '${cell}' at index ${i}`);
+      
+      // Track occurrences of this label
+      if (!labelCounts[cell]) {
+        labelCounts[cell] = 1;
+      } else {
+        labelCounts[cell]++;
+      }
+      
+      // Create a unique internal identifier for duplicate labels
+      const internalId = `${cell}__${labelCounts[cell]}`;
+      
+      currentGroup = {
+        label: cell,           // The visible label (unchanged)
+        internalId: internalId, // Unique identifier for internal use
+        startIndex: i,
+        endIndex: i
+      };
+      
+      groups.push(currentGroup);
+      console.log(`Created new group '${cell}' (internal ID: ${internalId}) at index ${i}`);
+    } else if (currentGroup) {
+      // Empty cell - extend the current group to include this cell
+      currentGroup.endIndex = i;
+      console.log(`Extended group '${currentGroup.label}' to include empty cell at index ${i}`);
+    }
   }
   
   console.log(`Parsed ${groups.length} groups from row`);
@@ -286,12 +284,14 @@ function generatePortsFromRoom(room) {
         const channelNumber = section.topRow.channelNumbers && section.topRow.channelNumbers[i] ? 
                              section.topRow.channelNumbers[i].trim() : '';
         
+        const groupInfo = findGroupForPort(section.topRow.groupLabels, i);
         ports.push({
           x: x,
           y: yOffset,
           id: portId.trim(),
           channelNumber: channelNumber,
-          groupLabel: findGroupForPort(section.topRow.groupLabels, i),
+          groupLabel: groupInfo.label,
+          groupInternalId: groupInfo.internalId,
           row: 'top',
           section: sectionIndex
         });
@@ -311,12 +311,14 @@ function generatePortsFromRoom(room) {
         const channelNumber = section.bottomRow.channelNumbers && section.bottomRow.channelNumbers[i] ? 
                              section.bottomRow.channelNumbers[i].trim() : '';
         
+        const groupInfo = findGroupForPort(section.bottomRow.groupLabels, i);
         ports.push({
           x: x,
           y: yOffset + rowSpacing,
           id: portId.trim(),
           channelNumber: channelNumber,
-          groupLabel: findGroupForPort(section.bottomRow.groupLabels, i),
+          groupLabel: groupInfo.label,
+          groupInternalId: groupInfo.internalId,
           row: 'bottom',
           section: sectionIndex
         });
@@ -337,20 +339,24 @@ function generatePortsFromRoom(room) {
   }
 }
 
-// Helper function to find the group label for a port at a specific index
+// Helper function to find the group label and internal ID for a port at a specific index
 function findGroupForPort(groupLabels, portIndex) {
   if (!groupLabels || !Array.isArray(groupLabels)) {
-    return '';
+    return { label: '', internalId: '' };
   }
   
   for (const group of groupLabels) {
     if (group && typeof group === 'object' && 
         'startIndex' in group && 'endIndex' in group && 'label' in group &&
         portIndex >= group.startIndex && portIndex <= group.endIndex) {
-      return group.label;
+      // Return both the label and the internal ID
+      return { 
+        label: group.label, 
+        internalId: group.internalId || group.label // Fallback to label if internalId doesn't exist
+      };
     }
   }
-  return '';
+  return { label: '', internalId: '' };
 }
 
 function setup() {
@@ -521,12 +527,42 @@ function drawLabelsAndNumbers() {
       
       // Draw top row labels and numbers
       if (section.top && section.top.length > 0) {
-        // Group labels
-        const uniqueLabels = [...new Set(section.top.map(p => p.groupLabel).filter(Boolean))];
-        uniqueLabels.forEach(label => {
-          if (!label) return;
+        // Group labels - Create groups of consecutive ports with the same label
+        const labelGroups = [];
+        let currentGroup = null;
+        
+        // Process ports in order to find consecutive groups with the same label
+        section.top.forEach((port, index) => {
+          if (!port.groupLabel) return;
           
-          const portsWithLabel = section.top.filter(p => p.groupLabel === label);
+          // If this is a new group or a different label than the previous group
+          // Now using port.groupInternalId to distinguish between duplicate labels
+          if (!currentGroup || currentGroup.internalId !== port.groupInternalId) {
+            // Save the previous group if it exists
+            if (currentGroup) {
+              labelGroups.push(currentGroup);
+            }
+            // Start a new group
+            currentGroup = {
+              label: port.groupLabel,
+              internalId: port.groupInternalId,
+              ports: [port]
+            };
+          } else {
+            // Add to the current group
+            currentGroup.ports.push(port);
+          }
+          
+          // If this is the last port, add the current group
+          if (index === section.top.length - 1 && currentGroup) {
+            labelGroups.push(currentGroup);
+          }
+        });
+        
+        // Draw each label group
+        labelGroups.forEach(group => {
+          const label = group.label;
+          const portsWithLabel = group.ports;
           if (portsWithLabel.length === 0) return;
           
           const firstPort = portsWithLabel[0];
@@ -552,12 +588,42 @@ function drawLabelsAndNumbers() {
       
       // Draw bottom row labels and numbers
       if (section.bottom && section.bottom.length > 0) {
-        // Group labels
-        const uniqueLabels = [...new Set(section.bottom.map(p => p.groupLabel).filter(Boolean))];
-        uniqueLabels.forEach(label => {
-          if (!label) return;
+        // Group labels - Create groups of consecutive ports with the same label
+        const labelGroups = [];
+        let currentGroup = null;
+        
+        // Process ports in order to find consecutive groups with the same label
+        section.bottom.forEach((port, index) => {
+          if (!port.groupLabel) return;
           
-          const portsWithLabel = section.bottom.filter(p => p.groupLabel === label);
+          // If this is a new group or a different label than the previous group
+          // Now using port.groupInternalId to distinguish between duplicate labels
+          if (!currentGroup || currentGroup.internalId !== port.groupInternalId) {
+            // Save the previous group if it exists
+            if (currentGroup) {
+              labelGroups.push(currentGroup);
+            }
+            // Start a new group
+            currentGroup = {
+              label: port.groupLabel,
+              internalId: port.groupInternalId,
+              ports: [port]
+            };
+          } else {
+            // Add to the current group
+            currentGroup.ports.push(port);
+          }
+          
+          // If this is the last port, add the current group
+          if (index === section.bottom.length - 1 && currentGroup) {
+            labelGroups.push(currentGroup);
+          }
+        });
+        
+        // Draw each label group
+        labelGroups.forEach(group => {
+          const label = group.label;
+          const portsWithLabel = group.ports;
           if (portsWithLabel.length === 0) return;
           
           const firstPort = portsWithLabel[0];
