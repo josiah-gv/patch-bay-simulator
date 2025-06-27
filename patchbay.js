@@ -261,7 +261,7 @@ function parseGroupLabels(row) {
 function generatePortsFromRoom(room) {
   ports = [];
   
-  let yOffset = margin + 40; // Extra space for room title
+  let yOffset = margin + 70; // Increased extra space for room title
   
   console.log(`Generating ports for room: ${room.name} with ${room.sections.length} sections`);
   
@@ -490,7 +490,7 @@ function drawLabelsAndNumbers() {
     textStyle(NORMAL); // Reset text style
     
     // Set text properties for labels and numbers
-    textSize(16); // Increased by 30% from 12
+    textSize(16); // Increased by 30% from 12 (for channel numbers)
     textAlign(CENTER, CENTER);
     
     // Check if we have ports to draw
@@ -533,9 +533,11 @@ function drawLabelsAndNumbers() {
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           const centerX = (firstPort.x + lastPort.x) / 2;
           
-          fill(200, 200, 255);
+          fill(255); // Changed from blue to white to match other text
           textStyle(BOLD); // Make group labels bold
-          text(label, centerX, firstPort.y - 40); // Further increased distance for more padding
+          textSize(17); // Reduced by 10% from 19 for group labels
+          text(label, centerX, firstPort.y - 60); // Increased padding by 20% (from 50 to 60)
+          textSize(16); // Reset to default size for other text
           textStyle(NORMAL); // Reset text style
         });
         
@@ -543,7 +545,7 @@ function drawLabelsAndNumbers() {
         section.top.forEach(port => {
           if (port.channelNumber) {
             fill(180, 180, 180);
-            text(port.channelNumber, port.x, port.y - 24); // Further increased distance for more padding
+            text(port.channelNumber, port.x, port.y - 36); // Increased padding by 20% (from 30 to 36)
           }
         });
       }
@@ -562,9 +564,11 @@ function drawLabelsAndNumbers() {
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           const centerX = (firstPort.x + lastPort.x) / 2;
           
-          fill(200, 200, 255);
+          fill(255); // Changed from blue to white to match other text
           textStyle(BOLD); // Make group labels bold
-          text(label, centerX, firstPort.y + 40); // Further increased distance for more padding
+          textSize(17); // Reduced by 10% from 19 for group labels
+          text(label, centerX, firstPort.y + 60); // Increased padding by 20% (from 50 to 60)
+          textSize(16); // Reset to default size for other text
           textStyle(NORMAL); // Reset text style
         });
         
@@ -572,7 +576,7 @@ function drawLabelsAndNumbers() {
         section.bottom.forEach(port => {
           if (port.channelNumber) {
             fill(180, 180, 180);
-            text(port.channelNumber, port.x, port.y + 24); // Further increased distance for more padding
+            text(port.channelNumber, port.x, port.y + 36); // Increased padding by 20% (from 30 to 36)
           }
         });
       }
