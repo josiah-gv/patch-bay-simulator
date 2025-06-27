@@ -1,5 +1,5 @@
 // Configuration constants
-const portRadius = 8;
+const portRadius = 5; // Reduced from 8 to prevent overlapping selection areas
 const safeZoneRadius = 24; // safe zone radius for deletion prevention
 const margin = 40;
 const portSpacing = 20; // horizontal spacing between ports
@@ -412,7 +412,8 @@ function draw() {
     noFill();
     connections.forEach(conn => {
       const isHovering = isMouseNearBezierSegments(conn.a, conn.b, 0, 0, 12);
-      const inSafeZone = getPortAt(mouseX, mouseY, safeZoneRadius);
+      // Use a smaller radius for more precise port detection
+      const inSafeZone = getPortAt(mouseX, mouseY, portRadius * 3);
       
       // Get the cable's color
       const cableColor = conn.color || cableColors[0]; // Default to first color if none stored
@@ -435,6 +436,22 @@ function draw() {
       drawCable(activeCable, { x: cursorX, y: cursorY }, controlOffsetY, controlOffsetX);
     }
 
+    // Find the closest available port for highlighting
+    let closestAvailablePort = null;
+    let closestDistance = portRadius * 3; // Use a smaller radius for more precise highlighting
+    
+    if (activeCable) {
+      ports.forEach(p => {
+        if (p !== activeCable && !isPortConnected(p)) {
+          const distance = dist(p.x, p.y, mouseX, mouseY);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestAvailablePort = p;
+          }
+        }
+      });
+    }
+    
     // Draw ports
     ports.forEach(p => {
       if (isPortConnected(p)) {
@@ -447,8 +464,8 @@ function draw() {
           // Fallback if no color found
           fill(150, 100, 100);
         }
-      } else if (activeCable && p !== activeCable && dist(p.x, p.y, mouseX, mouseY) < safeZoneRadius) {
-        fill(100, 200, 100); // green highlight for available port
+      } else if (activeCable && p !== activeCable && p === closestAvailablePort) {
+        fill(100, 200, 100); // green highlight for closest available port
       } else {
         fill(100); // default gray for unconnected ports
       }
@@ -591,7 +608,8 @@ function mousePressed() {
       return;
     }
 
-    const p = getPortAt(mouseX, mouseY, safeZoneRadius);
+    // Use a smaller radius for more precise port selection
+    const p = getPortAt(mouseX, mouseY, portRadius * 2);
     if (p) {
       if (!activeCable) {
         // Start a new cable from this port if it's not already connected
@@ -642,6 +660,10 @@ function getPortAt(x, y, radius = portRadius) {
   
   const checkRadius = radius || portRadius;
   
+  // Find the closest port within the radius
+  let closestPort = null;
+  let closestDistance = checkRadius; // Start with the maximum allowed distance
+  
   for (let i = 0; i < ports.length; i++) {
     const port = ports[i];
     
@@ -651,12 +673,14 @@ function getPortAt(x, y, radius = portRadius) {
       continue;
     }
     
-    if (dist(x, y, port.x, port.y) < checkRadius) {
-      return port;
+    const distance = dist(x, y, port.x, port.y);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestPort = port;
     }
   }
   
-  return null;
+  return closestPort;
 }
 
 function isMouseNearBezierSegments(a, b, offsetY, offsetX, threshold) {
