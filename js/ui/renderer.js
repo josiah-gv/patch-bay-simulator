@@ -576,14 +576,14 @@ function distToSegment(p, a, b) {
 }
 
 /**
- * Draws a box around the entire room grid
+ * Draws a box around the entire room grid, including room name at top and group boxes at bottom
  * @param {Object} p5 - The p5 instance
  * @param {Object} state - The application state
  */
 function drawRoomBox(p5, state) {
   console.log('Drawing room box');
-  if (!state.ports || state.ports.length === 0) {
-    console.log('No ports to draw room box around');
+  if (!state.ports || state.ports.length === 0 || !state.currentRoom) {
+    console.log('No ports or room to draw room box around');
     return;
   }
   
@@ -601,7 +601,47 @@ function drawRoomBox(p5, state) {
     maxY = Math.max(maxY, port.y);
   });
   
-  console.log('Room bounds:', minX, minY, maxX, maxY);
+  console.log('Initial port bounds:', minX, minY, maxX, maxY);
+  
+  // Extend top to include room name
+  const roomNameY = margin / 4; // This is where the room name is drawn
+  minY = Math.min(minY, roomNameY);
+  
+  // Extend bottom to include group boxes
+  // Find the lowest group box
+  const portsBySection = {};
+  
+  // Group ports by section and row to find group boxes
+  state.ports.forEach(port => {
+    if (!port || typeof port.section === 'undefined' || !port.row) {
+      return;
+    }
+    
+    if (!portsBySection[port.section]) {
+      portsBySection[port.section] = { top: [], bottom: [] };
+    }
+    
+    portsBySection[port.section][port.row].push(port);
+  });
+  
+  // Check bottom row group boxes to find the lowest point
+  Object.keys(portsBySection).forEach(sectionIndex => {
+    const section = portsBySection[sectionIndex];
+    
+    if (section.bottom && section.bottom.length > 0) {
+      // Find ports with group labels
+      const portsWithLabels = section.bottom.filter(port => port.groupLabel);
+      
+      if (portsWithLabels.length > 0) {
+        // The bottom of a group box is: port.y + bottomLabelPadding + groupBoxVerticalPadding
+        const lowestPort = portsWithLabels[0]; // Any port will do as they're all at the same y-coordinate
+        const groupBoxBottom = lowestPort.y + bottomLabelPadding + groupBoxVerticalPadding;
+        maxY = Math.max(maxY, groupBoxBottom);
+      }
+    }
+  });
+  
+  console.log('Extended bounds for room name and group boxes:', minX, minY, maxX, maxY);
   
   // Add padding around the bounds
   minX -= roomBoxPadding;
