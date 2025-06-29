@@ -9,6 +9,9 @@ import { portRadius } from '../config/constants.js';
 // Import port utilities
 import { getPortAt, isPortConnected } from '../models/Port.js';
 
+// Import connection utilities
+import { findConnectionWithPort } from '../models/Connection.js';
+
 /**
  * Handles mouse press events
  * @param {Object} p5 - The p5 instance
@@ -28,8 +31,35 @@ function mousePressed(p5, state) {
     const p = getPortAt(state.mouseX, state.mouseY, state.ports, portRadius * 1.5);
     if (p) {
       if (!state.activeCable) {
-        // Start a new cable from this port if it's not already connected
-        if (!isPortConnected(p, state.connections)) {
+        // Check if the port is already connected
+        if (isPortConnected(p, state.connections)) {
+          // Find the connection that contains this port
+          const connection = findConnectionWithPort(p, state.connections);
+          if (connection) {
+            // Determine which end of the connection to keep as active cable
+            const otherPort = connection.a === p ? connection.b : connection.a;
+            
+            // Remove the connection
+            const index = state.connections.indexOf(connection);
+            if (index !== -1) state.connections.splice(index, 1);
+            
+            // Set the other port as the active cable
+            state.activeCable = otherPort;
+            
+            // Keep the same color for the active cable
+            state.currentColorIndex = state.cableColors.findIndex(color => 
+              color[0] === connection.color[0] && 
+              color[1] === connection.color[1] && 
+              color[2] === connection.color[2]
+            );
+            
+            // If color not found, use the current color
+            if (state.currentColorIndex === -1) {
+              state.currentColorIndex = 0;
+            }
+          }
+        } else {
+          // Start a new cable from this port if it's not already connected
           state.activeCable = p;
         }
       } else {
