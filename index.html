@@ -1,56 +1,320 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Virtual Patch Bay</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --scale-factor: 1;
-    }
-    body { 
-      margin: 0; 
-      padding: 0; 
-      overflow-x: auto;
-      background-color: #222;
-    }
-    #canvas-container {
-      position: relative;
-      width: calc(1920px * var(--scale-factor));
-      height: calc(1080px * var(--scale-factor));
-      min-width: calc(1920px * var(--scale-factor));
-      margin: 0 auto;
-      overflow: visible;
-    }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: block;
-      width: 100%;
-      height: 100%;
-      image-rendering: -webkit-optimize-contrast; /* For Webkit browsers */
-      image-rendering: crisp-edges; /* For Firefox */
-      -ms-interpolation-mode: nearest-neighbor; /* For IE/Edge */
-    }
-    #backgroundCanvas { background: #222; z-index: 1; }
-    #groupBoxCanvas { z-index: 2; background: transparent; }
-    #cableCanvas { z-index: 3; background: transparent; }
-    #portCanvas { z-index: 4; background: transparent; }
-    #textCanvas { z-index: 5; background: transparent; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Patch Bay Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d0d0f;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .header {
+            background: rgba(13, 13, 15, 0.95);
+            backdrop-filter: blur(40px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 24px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.025em;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(15, 15, 17, 0.9);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 40px;
+        }
+
+        .sidebar-section h3 {
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .tip-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tip-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .tip-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f9fafb;
+        }
+
+        .tip-card p {
+            font-size: 13px;
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
+        }
+
+        .room-selector {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 48px;
+        }
+
+        .room-selector h2 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #9ca3af;
+            text-align: center;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .room-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .room-card.active {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .room-card.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .room-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .room-card h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 4px;
+        }
+
+        .room-card p {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .room-card.active h3 {
+            color: #10b981;
+        }
+
+        .patch-bay-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .patch-bay-section:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        #canvas-container {
+            position: relative;
+            width: calc(1920px * 0.8);
+            height: calc(1080px * 0.8);
+            min-width: calc(1920px * 0.8);
+            margin: 0 auto;
+            overflow: visible;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+
+        #backgroundCanvas { background: #222; z-index: 1; }
+        #groupBoxCanvas { z-index: 2; background: transparent; }
+        #cableCanvas { z-index: 3; background: transparent; }
+        #portCanvas { z-index: 4; background: transparent; }
+        #textCanvas { z-index: 5; background: transparent; }
+
+        :root {
+            --scale-factor: 0.8;
+        }
+    </style>
 </head>
 <body>
-  <div id="canvas-container">
-    <canvas id="backgroundCanvas"></canvas>
-    <canvas id="groupBoxCanvas"></canvas>
-    <canvas id="cableCanvas"></canvas>
-    <canvas id="portCanvas"></canvas>
-    <canvas id="textCanvas"></canvas>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script type="module" src="js/main.js?v=14"></script>
+    <div class="header">
+        <h1>Patch Bay Simulator</h1>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3>Usage Guide</h3>
+                <div class="tip-card">
+                    <h4>Cable Connections</h4>
+                    <p>Click and drag from any output port to an input port to create audio connections. Cables will follow realistic physics.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <h4>Port Management</h4>
+                    <p>Hover over ports to see connection details. Active connections are highlighted with visual indicators.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <h4>Room Navigation</h4>
+                    <p>Select different studio rooms from the room selector above to switch between various patch bay configurations.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <h4>Label System</h4>
+                    <p>Each port displays clear labels showing input/output designations and connection types for easy identification.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="room-selector">
+                <h2>Studio Room Selection</h2>
+                <div class="room-grid">
+                    <div class="room-card active">
+                        <span class="room-icon">🎛️</span>
+                        <h3>Server Room</h3>
+                        <p>Main patch bay</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">🎤</span>
+                        <h3>Vocal Booth</h3>
+                        <p>Isolated recording</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">🎵</span>
+                        <h3>Live Room</h3>
+                        <p>Full band setup</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">🎧</span>
+                        <h3>Control Room</h3>
+                        <p>Mixing & mastering</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">📻</span>
+                        <h3>Broadcast</h3>
+                        <p>Radio & podcasts</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="patch-bay-section">
+                <div id="canvas-container">
+                    <canvas id="backgroundCanvas"></canvas>
+                    <canvas id="groupBoxCanvas"></canvas>
+                    <canvas id="cableCanvas"></canvas>
+                    <canvas id="portCanvas"></canvas>
+                    <canvas id="textCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactivity to room cards
+        document.querySelectorAll('.room-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
+                // Add active class to clicked card
+                this.classList.add('active');
+            });
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script type="module" src="js/main.js?v=14"></script>
 </body>
 </html>

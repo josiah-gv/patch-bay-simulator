@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Router Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d0d0f;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: rgba(13, 13, 15, 0.95);
+            backdrop-filter: blur(40px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 24px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.025em;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(15, 15, 17, 0.9);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 40px;
+        }
+
+        .sidebar-section h3 {
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .tip-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tip-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .tip-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f9fafb;
+        }
+
+        .tip-card p {
+            font-size: 13px;
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
+        }
+
+        .room-selector {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 48px;
+        }
+
+        .room-selector h2 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #9ca3af;
+            text-align: center;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .room-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .room-card.active {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .room-card.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .room-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .room-card h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 4px;
+        }
+
+        .room-card p {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .room-card.active h3 {
+            color: #10b981;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 48px;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+
+        .server-room {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .server-room:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .server-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 32px;
+            color: #f3f4f6;
+        }
+
+        .connection-diagram {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .mic-lines {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            margin-bottom: 32px;
+        }
+
+        .mic-section {
+            text-align: center;
+        }
+
+        .mic-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .port-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .port {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .port.active {
+            background: #10b981;
+            border-color: #34d399;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .connection-lines {
+            margin: 32px 0;
+            height: 60px;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .connection-line {
+            height: 4px;
+            margin: 8px 0;
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+
+        .line-1 { background: linear-gradient(90deg, #06b6d4, #0891b2); }
+        .line-2 { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+        .line-3 { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .line-4 { background: linear-gradient(90deg, #10b981, #059669); }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .status-item {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .status-value {
+            color: #10b981;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Signal Router Pro</h1>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3>System Guide</h3>
+                <div class="tip-card">
+                    <h4>Signal Flow</h4>
+                    <p>Monitor real-time audio signal routing between input sources and output destinations through the visual connection matrix.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <h4>Port Management</h4>
+                    <p>Active ports are highlighted in green. Click on any port to view detailed connection information and signal strength.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <h4>Performance</h4>
+                    <p>System latency is displayed in real-time. Optimal performance is maintained below 3ms for professional audio applications.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <h4>Configuration</h4>
+                    <p>Save and load different routing configurations for various studio setups and recording scenarios.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="room-selector">
+                <h2>Studio Room Selection</h2>
+                <div class="room-grid">
+                    <div class="room-card active">
+                        <span class="room-icon">🎤</span>
+                        <h3>Vocal Booth</h3>
+                        <p>Isolated recording</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">🎵</span>
+                        <h3>Live Room</h3>
+                        <p>Full band setup</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">🎧</span>
+                        <h3>Control Room</h3>
+                        <p>Mixing & mastering</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">🎬</span>
+                        <h3>Foley Room</h3>
+                        <p>Sound effects</p>
+                    </div>
+                    
+                    <div class="room-card">
+                        <span class="room-icon">📻</span>
+                        <h3>Broadcast Booth</h3>
+                        <p>Radio & podcasts</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h1 class="section-title">Digital Audio Matrix</h1>
+            
+            <div class="server-room">
+                <h3 class="server-title">Studio Alpha - Main Recording Room</h3>
+                <div class="connection-diagram">
+                    <div class="mic-lines">
+                        <div class="mic-section">
+                            <div class="mic-label">Input Array</div>
+                            <div class="port-grid">
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mic-section">
+                            <div class="mic-label">Processing</div>
+                            <div class="port-grid">
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mic-section">
+                            <div class="mic-label">Output Matrix</div>
+                            <div class="port-grid">
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="connection-lines">
+                        <div class="connection-line line-1"></div>
+                        <div class="connection-line line-2"></div>
+                        <div class="connection-line line-3"></div>
+                        <div class="connection-line line-4"></div>
+                    </div>
+                    
+                    <div class="status-bar">
+                        <div class="status-item">System Status: <span class="status-value">Online</span></div>
+                        <div class="status-item">Latency: <span class="status-value">1.9ms</span></div>
+                        <div class="status-item">Active Channels: <span class="status-value">12/24</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="server-room">
+                <h3 class="server-title">Studio Beta - Live Performance Space</h3>
+                <div class="connection-diagram">
+                    <div class="mic-lines">
+                        <div class="mic-section">
+                            <div class="mic-label">Input Array</div>
+                            <div class="port-grid">
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mic-section">
+                            <div class="mic-label">Processing</div>
+                            <div class="port-grid">
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mic-section">
+                            <div class="mic-label">Output Matrix</div>
+                            <div class="port-grid">
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                                <div class="port active"></div>
+                                <div class="port"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="connection-lines">
+                        <div class="connection-line line-2"></div>
+                        <div class="connection-line line-1"></div>
+                        <div class="connection-line line-4"></div>
+                        <div class="connection-line line-3"></div>
+                    </div>
+                    
+                    <div class="status-bar">
+                        <div class="status-item">System Status: <span class="status-value">Online</span></div>
+                        <div class="status-item">Latency: <span class="status-value">2.3ms</span></div>
+                        <div class="status-item">Active Channels: <span class="status-value">14/24</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactivity to room cards
+        document.querySelectorAll('.room-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
+                // Add active class to clicked card
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
