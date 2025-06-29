@@ -37,7 +37,11 @@ import {
 import {
   roomBoxColor,
   roomBoxStrokeWeight,
-  roomBoxPadding
+  roomBoxPadding,
+  roomBoxTopPadding,
+  roomBoxBottomPadding,
+  roomBoxLeftPadding,
+  roomBoxRightPadding
 } from '../config/constants.js';
 
 // Import port utilities
@@ -284,7 +288,7 @@ function drawLabelsAndNumbers(p5, state) {
     p5.textSize(titleTextSize);
     p5.textAlign(p5.CENTER, p5.TOP);
     p5.textStyle(p5.BOLD); // Make room title bold
-    drawTextWithShadow(p5, state.currentRoom.name, canvasWidth / 2, margin / 4); // Further adjusted for more padding
+    drawTextWithShadow(p5, state.currentRoom.name, canvasWidth / 2, margin); // Increased vertical position to move title down with room
     p5.textStyle(p5.NORMAL); // Reset text style
     
     // Set text properties for labels and numbers
@@ -604,7 +608,7 @@ function drawRoomBox(p5, state) {
   console.log('Initial port bounds:', minX, minY, maxX, maxY);
   
   // Extend top to include room name
-  const roomNameY = margin / 4; // This is where the room name is drawn
+  const roomNameY = margin; // Updated to match the new title position
   minY = Math.min(minY, roomNameY);
   
   // Extend bottom to include group boxes
@@ -643,11 +647,11 @@ function drawRoomBox(p5, state) {
   
   console.log('Extended bounds for room name and group boxes:', minX, minY, maxX, maxY);
   
-  // Add padding around the bounds
-  minX -= roomBoxPadding;
-  minY -= roomBoxPadding;
-  maxX += roomBoxPadding;
-  maxY += roomBoxPadding;
+  // Add padding around the bounds using the new configurable padding constants
+  minX -= roomBoxLeftPadding;
+  minY -= roomBoxTopPadding;
+  maxX += roomBoxRightPadding;
+  maxY += roomBoxBottomPadding;
   
   console.log('Room bounds with padding:', minX, minY, maxX, maxY);
   

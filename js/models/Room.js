@@ -25,7 +25,7 @@ import { findGroupForPort } from '../utils/csvParser.js';
  */
 function generatePortsFromRoom(room) {
   const ports = [];
-  let yOffset = margin + 70; // Increased extra space for room title
+  let yOffset = margin + 120; // Increased extra space to move room down
   let updatedCanvasHeight = canvasHeight;
   
   console.log(`Generating ports for room: ${room.name} with ${room.sections.length} sections`);
