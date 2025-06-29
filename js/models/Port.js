@@ -60,14 +60,20 @@ function isPortConnected(port, connections) {
     return false;
   }
   
+  // Get the port's index in the state.ports array
+  // This is needed because connections store port indices, not port objects
+  const portIndex = port.id;
+  
   return connections.some(conn => {
     if (!conn) return false;
     
-    // Check for both port1/port2 and a/b formats (depending on implementation)
+    // Check for different connection formats
     if (conn.port1 && conn.port2) {
       return conn.port1 === port || conn.port2 === port;
     } else if (conn.a && conn.b) {
       return conn.a === port || conn.b === port;
+    } else if (conn.from !== undefined && conn.to !== undefined) {
+      return conn.from === portIndex || conn.to === portIndex;
     }
     
     return false;

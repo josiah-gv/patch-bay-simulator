@@ -1,6 +1,6 @@
 /**
  * Renderer Module
- * Handles drawing and rendering of the patch bay UI
+ * Handles drawing and rendering of the patch bay UI using a layered canvas approach
  */
 
 // Import constants
@@ -30,7 +30,8 @@ import {
   canvasWidth,
   canvasHeight,
   margin,
-  fontFamily
+  fontFamily,
+  LAYERS
 } from '../config/constants.js';
 
 // Import room box constants separately to avoid potential naming conflicts
@@ -47,6 +48,26 @@ import {
 // Import port utilities
 import { isPortConnected, getPortAt } from '../models/Port.js';
 
+// Import layer manager
+import {
+  getBackgroundContext,
+  getGroupBoxContext,
+  getCableContext,
+  getPortContext,
+  getTextContext,
+  clearBackgroundLayer,
+  clearGroupBoxLayer,
+  clearCableLayer,
+  clearPortLayer,
+  clearTextLayer,
+  initializeLayers,
+  areLayersInitialized,
+  markLayerAsDirty,
+  markLayerAsClean,
+  markAllLayersAsDirty,
+  isLayerDirty
+} from './layerManager.js';
+
 /**
  * Main draw function for the patch bay
  * @param {Object} p5 - The p5 instance
@@ -54,7 +75,15 @@ import { isPortConnected, getPortAt } from '../models/Port.js';
  */
 function draw(p5, state) {
   try {
-    p5.background(backgroundColor);
+    // Initialize layers if not already done
+    if (!areLayersInitialized()) {
+      if (!initializeLayers()) {
+        console.error('Failed to initialize canvas layers');
+        return;
+      }
+    }
+    
+    // Reset hover connection
     state.hoverConnection = null;
 
     if (!state.currentRoom) return;
@@ -70,47 +99,68 @@ function draw(p5, state) {
     // Frame rate independent momentum calculations
     const dampingFactor = 0.2 * deltaFactor;
     
+    // Determine if we need to redraw based on cursor movement
+    const significantMovement = Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1;
+    
     // Vertical jiggle momentum (frame rate independent)
     state.controlOffsetY += (dy * 2 - state.controlOffsetY) * dampingFactor;
-
     // Horizontal swing momentum (frame rate independent)
     state.controlOffsetX += (dx * 2 - state.controlOffsetX) * dampingFactor;
 
     state.prevCursorX = state.cursorX;
     state.prevCursorY = state.cursorY;
-
-    // Draw room box first so it appears behind everything else
-    drawRoomBox(p5, state);
     
-    // Draw only the group boxes before cables so they appear behind cables
-    drawGroupBoxes(p5, state);
-
-    // Draw connections (cables) after group boxes so they appear on top of boxes
-    drawConnections(p5, state);
-
-    // Draw active cable if one exists
-    if (state.activeCable) {
-      drawActiveCable(p5, state);
-    }
-    
-    // Draw text labels and channel numbers after cables so they appear on top of everything
-    drawLabelsAndText(p5, state);
-
     // Find the closest available port for highlighting
+    const previousClosestPort = state.closestAvailablePort;
     state.closestAvailablePort = findClosestAvailablePort(state);
     
-    // Draw ports
-    drawPorts(p5, state, state.closestAvailablePort);
+    // Check if the closest port has changed, which would require redrawing the port layer
+    const closestPortChanged = previousClosestPort !== state.closestAvailablePort;
+    
+    // Mark layers as dirty based on state changes
+    if (significantMovement || state.activeCable) {
+      // If there's cursor movement or an active cable, the cable layer needs redrawing
+      markLayerAsDirty(LAYERS.CABLE);
+    }
+    
+    if (closestPortChanged) {
+      // If the closest port changed, the port layer needs redrawing
+      markLayerAsDirty(LAYERS.PORT);
+    }
+    
+    // Only clear and redraw layers that are marked as dirty
+    if (isLayerDirty(LAYERS.BACKGROUND)) {
+      clearBackgroundLayer();
+      drawBackground(p5, state);
+      markLayerAsClean(LAYERS.BACKGROUND);
+    }
+    
+    if (isLayerDirty(LAYERS.GROUP_BOX)) {
+      clearGroupBoxLayer();
+      drawRoomBox(p5, state);
+      drawGroupBoxes(p5, state);
+      markLayerAsClean(LAYERS.GROUP_BOX);
+    }
+    
+    if (isLayerDirty(LAYERS.CABLE)) {
+      clearCableLayer();
+      drawCables(p5, state);
+      markLayerAsClean(LAYERS.CABLE);
+    }
+    
+    if (isLayerDirty(LAYERS.PORT)) {
+      clearPortLayer();
+      drawPorts(p5, state, state.closestAvailablePort);
+      markLayerAsClean(LAYERS.PORT);
+    }
+    
+    if (isLayerDirty(LAYERS.TEXT)) {
+      clearTextLayer();
+      drawText(p5, state);
+      markLayerAsClean(LAYERS.TEXT);
+    }
     
     // FPS calculation still happens but display is hidden
-    // The following code is commented out to hide the FPS counter while maintaining the functionality
-    // p5.noStroke();
-    // p5.fill(255);
-    // p5.textSize(12);
-    // p5.textAlign(p5.LEFT, p5.TOP);
-    // p5.text(`FPS: ${Math.round(p5.frameRate())}`, 10, 10);
-    
-    // Still calculate FPS for internal use
     Math.round(p5.frameRate());
   } catch (error) {
     console.error('Error in draw function:', error);
@@ -118,18 +168,45 @@ function draw(p5, state) {
 }
 
 /**
- * Draws all connections
+ * Draws the background layer
  * @param {Object} p5 - The p5 instance
  * @param {Object} state - The application state
  */
-function drawConnections(p5, state) {
-  p5.strokeWeight(cableStrokeWeight);
-  p5.noFill();
+function drawBackground(p5, state) {
+  const ctx = getBackgroundContext();
+  if (!ctx) return;
   
+  // Fill the background
+  ctx.fillStyle = `rgb(${backgroundColor}, ${backgroundColor}, ${backgroundColor})`;
+  // Account for device pixel ratio when filling the background
+  const dpr = window.devicePixelRatio || 1;
+  ctx.fillRect(0, 0, canvasWidth * dpr, canvasHeight * dpr);
+}
+
+/**
+ * Draws all cables (connections and active cable) on the cable layer
+ * @param {Object} p5 - The p5 instance
+ * @param {Object} state - The application state
+ */
+function drawCables(p5, state) {
+  const ctx = getCableContext();
+  if (!ctx) return;
+  
+  // Set common cable properties
+  ctx.lineWidth = cableStrokeWeight;
+  
+  // Draw existing connections
   state.connections.forEach(conn => {
+    // Get the port objects from their indices
+    const portA = state.ports[conn.from];
+    const portB = state.ports[conn.to];
+    
+    // Skip if ports don't exist
+    if (!portA || !portB) return;
+    
     const isHovering = isMouseNearBezierSegments(
-      conn.a, 
-      conn.b, 
+      portA, 
+      portB, 
       0, 
       0, 
       16, // Hover threshold
@@ -151,63 +228,74 @@ function drawConnections(p5, state) {
     if (isHovering && !inSafeZone && !state.activeCable) {
       // Use a darker shade of the cable's color for deletion hover
       // Only set hover connection if we're not holding a cable
-      p5.stroke(cableColor[0] * 0.6, cableColor[1] * 0.6, cableColor[2] * 0.6);
+      ctx.strokeStyle = `rgb(${cableColor[0] * 0.6}, ${cableColor[1] * 0.6}, ${cableColor[2] * 0.6})`;
       state.hoverConnection = conn;
     } else {
       // Use the cable's normal color
-      p5.stroke(cableColor[0], cableColor[1], cableColor[2]);
+      ctx.strokeStyle = `rgb(${cableColor[0]}, ${cableColor[1]}, ${cableColor[2]})`;
     }
     
-    drawCable(p5, conn.a, conn.b);
+    drawCableOnContext(ctx, portA, portB);
   });
+  
+  // Draw active cable if one exists
+  if (state.activeCable !== null) {
+    // Get the port object from its index
+    const activePort = state.ports[state.activeCable];
+    
+    // Skip if port doesn't exist
+    if (!activePort) return;
+    
+    // Use the next color in the sequence for the active cable
+    const nextColor = state.cableColors[state.currentColorIndex];
+    ctx.strokeStyle = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
+    
+    drawCableOnContext(
+      ctx,
+      activePort, 
+      { x: state.cursorX, y: state.cursorY }, 
+      state.controlOffsetY, 
+      state.controlOffsetX
+    );
+  }
 }
 
 /**
- * Draws the active cable being dragged
- * @param {Object} p5 - The p5 instance
- * @param {Object} state - The application state
- */
-function drawActiveCable(p5, state) {
-  // Use the next color in the sequence for the active cable
-  const nextColor = state.cableColors[state.currentColorIndex];
-  p5.stroke(nextColor[0], nextColor[1], nextColor[2]);
-  drawCable(
-    p5,
-    state.activeCable, 
-    { x: state.cursorX, y: state.cursorY }, 
-    state.controlOffsetY, 
-    state.controlOffsetX
-  );
-}
-
-/**
- * Draws all ports
+ * Draws all ports on the port layer
  * @param {Object} p5 - The p5 instance
  * @param {Object} state - The application state
  * @param {Object} closestAvailablePort - The closest available port for highlighting
  */
 function drawPorts(p5, state, closestAvailablePort) {
+  const ctx = getPortContext();
+  if (!ctx) return;
+  
   state.ports.forEach(p => {
+    // Begin a new path for each port
+    ctx.beginPath();
+    
     if (isPortConnected(p, state.connections)) {
       // Find the connection this port belongs to
-      const conn = state.connections.find(c => c.a === p || c.b === p);
+      const conn = state.connections.find(c => c.from === p.id || c.to === p.id);
       if (conn && conn.color) {
         // Use the cable's color for the port, but slightly darker
-        p5.fill(conn.color[0] * 0.8, conn.color[1] * 0.8, conn.color[2] * 0.8);
+        ctx.fillStyle = `rgb(${conn.color[0] * 0.8}, ${conn.color[1] * 0.8}, ${conn.color[2] * 0.8})`;
       } else {
         // Fallback if no color found
-        p5.fill(150, 100, 100);
+        ctx.fillStyle = 'rgb(150, 100, 100)';
       }
     } else if (p === closestAvailablePort) {
       // Highlight the closest available port with the color of the new cable
       // Always use the next color in the sequence for highlighting, whether there's an active cable or not
       const nextColor = state.cableColors[state.currentColorIndex];
-      p5.fill(nextColor[0], nextColor[1], nextColor[2]);
+      ctx.fillStyle = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
     } else {
-      p5.fill(defaultPortColor); // default gray for unconnected ports
+      ctx.fillStyle = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`; // default gray for unconnected ports
     }
-    p5.noStroke();
-    p5.circle(p.x, p.y, portRadius * 2);
+    
+    // Draw the port circle
+    ctx.arc(p.x, p.y, portRadius, 0, Math.PI * 2);
+    ctx.fill();
   });
 }
 
@@ -223,7 +311,7 @@ function findClosestAvailablePort(state) {
   
   state.ports.forEach(p => {
     // Skip the active cable port if it exists
-    if ((state.activeCable && p !== state.activeCable) || !state.activeCable) {
+    if ((state.activeCable !== null && p.id !== state.activeCable) || state.activeCable === null) {
       // Only consider unconnected ports
       if (!isPortConnected(p, state.connections)) {
         const distance = Math.sqrt(
@@ -275,16 +363,50 @@ function drawTextWithShadow(p5, text, x, y) {
   
   // Restore the context to remove shadow settings
   p5.drawingContext.restore();
-
 }
 
-// Function to draw only the group boxes (to be drawn behind cables)
+/**
+ * Helper function to draw text with shadow using canvas context
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {string} text - The text to draw
+ * @param {number} x - The x coordinate
+ * @param {number} y - The y coordinate
+ */
+function drawTextWithShadowOnContext(ctx, text, x, y) {
+  // Save current context state
+  ctx.save();
+  
+  // Apply shadow settings
+  ctx.shadowColor = `rgba(${textShadowColor}, ${textShadowColor}, ${textShadowColor}, ${textShadowOpacity})`;
+  ctx.shadowBlur = textShadowBlur;
+  ctx.shadowOffsetX = textShadowOffsetX;
+  ctx.shadowOffsetY = textShadowOffsetY;
+  
+  // Draw the text with shadow
+  ctx.fillText(text, x, y);
+  
+  // Restore the context
+  ctx.restore();
+}
+
+/**
+ * Draws group boxes on the group box layer
+ * @param {Object} p5 - The p5 instance
+ * @param {Object} state - The application state
+ */
 function drawGroupBoxes(p5, state) {
+  const ctx = getGroupBoxContext();
+  if (!ctx) return;
+  
   if (!state.currentRoom || !state.currentRoom.name || !state.ports || state.ports.length === 0) {
     return;
   }
   
   try {
+    // Set common group box properties
+    ctx.strokeStyle = `rgb(${groupBoxColor[0]}, ${groupBoxColor[1]}, ${groupBoxColor[2]})`;
+    ctx.lineWidth = groupBoxStrokeWeight;
+    
     // Group the ports by section and row
     const portsBySection = {};
     
@@ -345,11 +467,6 @@ function drawGroupBoxes(p5, state) {
           const firstPort = portsWithLabel[0];
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           
-          // Draw the group box
-          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
-          p5.strokeWeight(groupBoxStrokeWeight);
-          p5.noFill();
-          
           // Calculate box dimensions - around the label and channel numbers
           const boxLeft = firstPort.x - groupBoxHorizontalPadding;
           const boxRight = lastPort.x + groupBoxHorizontalPadding;
@@ -357,7 +474,9 @@ function drawGroupBoxes(p5, state) {
           const boxBottom = firstPort.y - channelNumberPadding + groupBoxVerticalPadding;
           
           // Draw the rectangle - around both label and channel numbers
-          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+          ctx.beginPath();
+          ctx.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+          ctx.stroke();
         });
       }
       
@@ -402,11 +521,6 @@ function drawGroupBoxes(p5, state) {
           const firstPort = portsWithLabel[0];
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           
-          // Draw the group box
-          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
-          p5.strokeWeight(groupBoxStrokeWeight);
-          p5.noFill();
-          
           // Calculate box dimensions - around the label and channel numbers
           const boxLeft = firstPort.x - groupBoxHorizontalPadding;
           const boxRight = lastPort.x + groupBoxHorizontalPadding;
@@ -414,7 +528,9 @@ function drawGroupBoxes(p5, state) {
           const boxBottom = firstPort.y + bottomLabelPadding + groupBoxVerticalPadding;
           
           // Draw the rectangle - around both label and channel numbers
-          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+          ctx.beginPath();
+          ctx.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+          ctx.stroke();
         });
       }
     });
@@ -423,32 +539,36 @@ function drawGroupBoxes(p5, state) {
   }
 }
 
-// Function to draw text labels and channel numbers (to be drawn on top of cables)
-function drawLabelsAndText(p5, state) {
+/**
+ * Draws text labels and channel numbers on the text layer
+ * @param {Object} p5 - The p5 instance
+ * @param {Object} state - The application state
+ */
+function drawText(p5, state) {
+  const ctx = getTextContext();
+  if (!ctx) return;
+  
   if (!state.currentRoom || !state.currentRoom.name) {
-    console.warn('Cannot draw labels: currentRoom is not properly defined');
     return;
   }
   
   try {
-    // Reset any previous fill color that might have been set by cable drawing
-    p5.noStroke();
-    
     // Draw room title
-    p5.fill(textColor);
-    p5.textSize(titleTextSize);
-    p5.textAlign(p5.CENTER, p5.TOP);
-    p5.textStyle(p5.BOLD); // Make room title bold
-    drawTextWithShadow(p5, state.currentRoom.name, canvasWidth / 2, margin); // Increased vertical position to move title down with room
-    p5.textStyle(p5.NORMAL); // Reset text style
+    ctx.fillStyle = `rgb(${textColor}, ${textColor}, ${textColor})`;
+    ctx.font = `bold ${titleTextSize}px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    
+    // Draw room title with shadow
+    drawTextWithShadowOnContext(ctx, state.currentRoom.name, canvasWidth / 2, margin);
     
     // Set text properties for labels and numbers
-    p5.textSize(channelNumberTextSize);
-    p5.textAlign(p5.CENTER, p5.CENTER);
+    ctx.font = `${channelNumberTextSize}px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     
     // Check if we have ports to draw
     if (!state.ports || state.ports.length === 0) {
-      console.warn('No ports available to draw labels for');
       return;
     }
     
@@ -457,7 +577,6 @@ function drawLabelsAndText(p5, state) {
     
     state.ports.forEach(port => {
       if (!port || typeof port.section === 'undefined' || !port.row) {
-        console.warn('Invalid port object:', port);
         return;
       }
       
@@ -516,21 +635,17 @@ function drawLabelsAndText(p5, state) {
           const centerX = (firstPort.x + lastPort.x) / 2;
           
           // Draw the label text
-          p5.noStroke(); // Ensure no stroke is applied to text
-          p5.fill(textColor);
-          p5.textStyle(p5.BOLD); // Make group labels bold
-          p5.textSize(groupLabelTextSize);
-          drawTextWithShadow(p5, label, centerX, firstPort.y - topLabelPadding);
-          p5.textSize(channelNumberTextSize); // Reset to default size for other text
-          p5.textStyle(p5.NORMAL); // Reset text style
+          ctx.fillStyle = `rgb(${textColor}, ${textColor}, ${textColor})`;
+          ctx.font = `bold ${groupLabelTextSize}px ${fontFamily}`;
+          drawTextWithShadowOnContext(ctx, label, centerX, firstPort.y - topLabelPadding);
+          ctx.font = `${channelNumberTextSize}px ${fontFamily}`; // Reset to default size for other text
         });
         
         // Channel numbers
         section.top.forEach(port => {
           if (port.channelNumber) {
-            p5.noStroke(); // Ensure no stroke is applied to text
-            p5.fill(channelNumberColor[0], channelNumberColor[1], channelNumberColor[2]);
-            drawTextWithShadow(p5, port.channelNumber, port.x, port.y - channelNumberPadding);
+            ctx.fillStyle = `rgb(${channelNumberColor[0]}, ${channelNumberColor[1]}, ${channelNumberColor[2]})`;
+            drawTextWithShadowOnContext(ctx, port.channelNumber, port.x, port.y - channelNumberPadding);
           }
         });
       }
@@ -579,21 +694,17 @@ function drawLabelsAndText(p5, state) {
           const centerX = (firstPort.x + lastPort.x) / 2;
           
           // Draw the label text
-          p5.noStroke(); // Ensure no stroke is applied to text
-          p5.fill(textColor);
-          p5.textStyle(p5.BOLD); // Make group labels bold
-          p5.textSize(groupLabelTextSize);
-          drawTextWithShadow(p5, label, centerX, firstPort.y + bottomLabelPadding);
-          p5.textSize(channelNumberTextSize); // Reset to default size for other text
-          p5.textStyle(p5.NORMAL); // Reset text style
+          ctx.fillStyle = `rgb(${textColor}, ${textColor}, ${textColor})`;
+          ctx.font = `bold ${groupLabelTextSize}px ${fontFamily}`;
+          drawTextWithShadowOnContext(ctx, label, centerX, firstPort.y + bottomLabelPadding);
+          ctx.font = `${channelNumberTextSize}px ${fontFamily}`; // Reset to default size for other text
         });
         
         // Channel numbers
         section.bottom.forEach(port => {
           if (port.channelNumber) {
-            p5.noStroke(); // Ensure no stroke is applied to text
-            p5.fill(channelNumberColor[0], channelNumberColor[1], channelNumberColor[2]);
-            drawTextWithShadow(p5, port.channelNumber, port.x, port.y + channelNumberPadding);
+            ctx.fillStyle = `rgb(${channelNumberColor[0]}, ${channelNumberColor[1]}, ${channelNumberColor[2]})`;
+            drawTextWithShadowOnContext(ctx, port.channelNumber, port.x, port.y + channelNumberPadding);
           }
         });
       }
@@ -608,11 +719,44 @@ function drawLabelsAndNumbers(p5, state) {
   // This function is kept for backward compatibility
   // It now just calls the two separate functions
   drawGroupBoxes(p5, state);
-  drawLabelsAndText(p5, state);
+  drawText(p5, state);
 }
 
 /**
- * Draws a cable between two points
+ * Draws a cable between two points using canvas context
+ * @param {CanvasRenderingContext2D} ctx - The canvas context
+ * @param {Object} a - The starting point
+ * @param {Object} b - The ending point
+ * @param {number} offsetY - Vertical offset for control points
+ * @param {number} offsetX - Horizontal offset for control points
+ */
+function drawCableOnContext(ctx, a, b, offsetY = 0, offsetX = 0) {
+  // Check if a and b are defined and have valid coordinates
+  if (!a || !b || typeof a.x !== 'number' || typeof a.y !== 'number' || 
+      typeof b.x !== 'number' || typeof b.y !== 'number') {
+    console.warn('Invalid port coordinates in drawCableOnContext', a, b);
+    return;
+  }
+  
+  const sag = 39 + Math.abs(a.x - b.x) * 0.065; // Increased by 30% from 30 and 0.05
+
+  // Linear interpolation function
+  const lerp = (start, end, amt) => start * (1 - amt) + end * amt;
+  
+  const cp1X = lerp(a.x, b.x, 0.25) + offsetX;
+  const cp2X = lerp(a.x, b.x, 0.75) + offsetX;
+
+  const controlY = Math.max(a.y, b.y) + sag + offsetY;
+
+  // Draw bezier curve
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.bezierCurveTo(cp1X, controlY, cp2X, controlY, b.x, b.y);
+  ctx.stroke();
+}
+
+/**
+ * Legacy function for drawing a cable between two points using p5
  * @param {Object} p5 - The p5 instance
  * @param {Object} a - The starting point
  * @param {Object} b - The ending point
@@ -620,6 +764,19 @@ function drawLabelsAndNumbers(p5, state) {
  * @param {number} offsetX - Horizontal offset for control points
  */
 function drawCable(p5, a, b, offsetY = 0, offsetX = 0) {
+  // Check if a and b are defined and have valid coordinates
+  if (!a || !b || typeof a.x !== 'number' || typeof a.y !== 'number' || 
+      typeof b.x !== 'number' || typeof b.y !== 'number') {
+    console.warn('Invalid port coordinates in drawCable', a, b);
+    return;
+  }
+  
+  // Check if p5 is defined and has the required functions
+  if (!p5 || typeof p5.lerp !== 'function' || typeof p5.bezier !== 'function') {
+    console.warn('Invalid p5 instance in drawCable');
+    return;
+  }
+  
   const sag = 39 + Math.abs(a.x - b.x) * 0.065; // Increased by 30% from 30 and 0.05
 
   const cp1X = p5.lerp(a.x, b.x, 0.25) + offsetX;
@@ -642,11 +799,35 @@ function drawCable(p5, a, b, offsetY = 0, offsetX = 0) {
  * @returns {boolean} - True if mouse is near the curve
  */
 function isMouseNearBezierSegments(a, b, offsetY, offsetX, threshold, p5, state) {
+  // Check if a and b are defined and have valid coordinates
+  if (!a || !b || typeof a.x !== 'number' || typeof a.y !== 'number' || 
+      typeof b.x !== 'number' || typeof b.y !== 'number') {
+    console.warn('Invalid port coordinates in isMouseNearBezierSegments', a, b);
+    return false;
+  }
+  
+  // Check if state has valid mouse coordinates
+  if (!state || typeof state.mouseX !== 'number' || typeof state.mouseY !== 'number') {
+    console.warn('Invalid state or mouse coordinates in isMouseNearBezierSegments', state);
+    return false;
+  }
+  
   const samples = 50;
   const sag = 39 + Math.abs(a.x - b.x) * 0.065; // Increased by 30% from 30 and 0.05
   let points = [];
+  
+  // Linear interpolation function (in case p5.lerp is not available)
+  const lerp = (start, end, amt) => {
+    return start * (1 - amt) + end * amt;
+  };
+  
   for (let t = 0; t <= 1; t += 1 / samples) {
-    const x = bezierPoint(a.x, p5.lerp(a.x, b.x, 0.25) + offsetX, p5.lerp(a.x, b.x, 0.75) + offsetX, b.x, t);
+    // Use p5.lerp if available, otherwise use our own lerp function
+    const lerpFunc = (p5 && typeof p5.lerp === 'function') ? 
+      ((start, end, amt) => p5.lerp(start, end, amt)) : 
+      lerp;
+    
+    const x = bezierPoint(a.x, lerpFunc(a.x, b.x, 0.25) + offsetX, lerpFunc(a.x, b.x, 0.75) + offsetX, b.x, t);
     const y = bezierPoint(a.y, Math.max(a.y, b.y) + sag + offsetY,
                           Math.max(a.y, b.y) + sag + offsetY, b.y, t);
     points.push({ x, y });
@@ -714,9 +895,10 @@ function distToSegment(p, a, b) {
  * @param {Object} state - The application state
  */
 function drawRoomBox(p5, state) {
-  console.log('Drawing room box');
+  const ctx = getGroupBoxContext();
+  if (!ctx) return;
+  
   if (!state.ports || state.ports.length === 0 || !state.currentRoom) {
-    console.log('No ports or room to draw room box around');
     return;
   }
   
@@ -733,8 +915,6 @@ function drawRoomBox(p5, state) {
     maxX = Math.max(maxX, port.x);
     maxY = Math.max(maxY, port.y);
   });
-  
-  console.log('Initial port bounds:', minX, minY, maxX, maxY);
   
   // Extend top to include room name
   const roomNameY = margin; // Updated to match the new title position
@@ -774,32 +954,32 @@ function drawRoomBox(p5, state) {
     }
   });
   
-  console.log('Extended bounds for room name and group boxes:', minX, minY, maxX, maxY);
-  
   // Add padding around the bounds using the new configurable padding constants
   minX -= roomBoxLeftPadding;
   minY -= roomBoxTopPadding;
   maxX += roomBoxRightPadding;
   maxY += roomBoxBottomPadding;
   
-  console.log('Room bounds with padding:', minX, minY, maxX, maxY);
-  
   // Draw the room box
-  p5.stroke(roomBoxColor[0], roomBoxColor[1], roomBoxColor[2]);
-  p5.strokeWeight(roomBoxStrokeWeight);
-  p5.noFill();
-  p5.rect(minX, minY, maxX - minX, maxY - minY);
+  ctx.strokeStyle = `rgb(${roomBoxColor[0]}, ${roomBoxColor[1]}, ${roomBoxColor[2]})`;
+  ctx.lineWidth = roomBoxStrokeWeight;
+  ctx.beginPath();
+  ctx.rect(minX, minY, maxX - minX, maxY - minY);
+  ctx.stroke();
 }
 
 // Export the functions
 export {
   draw,
-  drawLabelsAndNumbers,
+  drawBackground,
+  drawRoomBox,
   drawGroupBoxes,
-  drawLabelsAndText,
-  drawCable,
+  drawCables,
+  drawPorts,
+  drawText,
   isMouseNearBezierSegments,
+  findClosestAvailablePort,
   distToSegment,
   bezierPoint,
-  drawRoomBox
+  drawCableOnContext
 };
