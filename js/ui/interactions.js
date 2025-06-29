@@ -26,23 +26,7 @@ function mousePressed(p5, state) {
   const mouseX = state.mouseX;
   const mouseY = state.mouseY;
   
-  // Check if we're clicking on a connection to delete it
-  for (let i = 0; i < state.connections.length; i++) {
-    const conn = state.connections[i];
-    const a = state.ports.find(port => port.id === conn.from);
-    const b = state.ports.find(port => port.id === conn.to);
-    
-    // Check if both ports exist before checking if mouse is near the cable
-    if (a && b && isMouseNearBezierSegments(a, b, 0, 0, 16, p5, state)) {
-      state.connections.splice(i, 1);
-      // Mark cable and port layers as dirty since we removed a connection
-      markLayerAsDirty(LAYERS.CABLE);
-      markLayerAsDirty(LAYERS.PORT);
-      return;
-    }
-  }
-
-  // Check if we're clicking on a port
+  // Check if we're clicking on a port first (ports take priority over cable deletion)
   const port = getPortAt(mouseX, mouseY, state.ports, portRadius * 1.5);
   if (port !== null) {
     // If we have an active cable, try to connect it
@@ -54,17 +38,24 @@ function mousePressed(p5, state) {
 
       if (!isPortConnected) {
         // Connect the cable
+        // Use the stored cable color if available (from picking up an existing cable)
+        // Otherwise use the current color from the color cycle
+        const cableColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
+        
         state.connections.push({
           from: state.activeCable,
           to: port.id,
-          color: state.cableColors[state.currentColorIndex]
+          color: cableColor
         });
         
-        // Cycle to the next cable color
-        state.currentColorIndex = (state.currentColorIndex + 1) % state.cableColors.length;
+        // Only cycle to the next cable color if we used a new color (not a picked up cable)
+        if (!state.activeCableColor) {
+          state.currentColorIndex = (state.currentColorIndex + 1) % state.cableColors.length;
+        }
         
-        // Clear the active cable
+        // Clear the active cable and stored color
         state.activeCable = null;
+        state.activeCableColor = null;
         
         // Mark cable and port layers as dirty since we added a connection
         markLayerAsDirty(LAYERS.CABLE);
@@ -77,11 +68,24 @@ function mousePressed(p5, state) {
       );
 
       if (existingConnection) {
-        // If the port is already connected, remove the connection
+        // If the port is already connected, pick up the cable
+        // Remove the connection from the connections array
         const index = state.connections.indexOf(existingConnection);
         state.connections.splice(index, 1);
         
-        // Mark cable and port layers as dirty since we removed a connection
+        // Determine which end of the cable to pick up
+        // If we clicked on the 'from' port, pick up from the 'to' port
+        // If we clicked on the 'to' port, pick up from the 'from' port
+        if (existingConnection.from === port.id) {
+          state.activeCable = existingConnection.to;
+        } else {
+          state.activeCable = existingConnection.from;
+        }
+        
+        // Store the cable color so we can reuse it when reconnecting
+        state.activeCableColor = existingConnection.color;
+        
+        // Mark cable and port layers as dirty since we modified a connection
         markLayerAsDirty(LAYERS.CABLE);
         markLayerAsDirty(LAYERS.PORT);
       } else {
@@ -95,9 +99,27 @@ function mousePressed(p5, state) {
   } else if (state.activeCable !== null) {
     // If we click anywhere else with an active cable, cancel it
     state.activeCable = null;
+    state.activeCableColor = null;
     
     // Mark cable layer as dirty since we cancelled the active cable
     markLayerAsDirty(LAYERS.CABLE);
+  } else {
+    // If we're not clicking on a port and don't have an active cable,
+    // check if we're clicking on a connection to delete it
+    for (let i = 0; i < state.connections.length; i++) {
+      const conn = state.connections[i];
+      const a = state.ports.find(port => port.id === conn.from);
+      const b = state.ports.find(port => port.id === conn.to);
+      
+      // Check if both ports exist before checking if mouse is near the cable
+      if (a && b && isMouseNearBezierSegments(a, b, 0, 0, 16, p5, state)) {
+        state.connections.splice(i, 1);
+        // Mark cable and port layers as dirty since we removed a connection
+        markLayerAsDirty(LAYERS.CABLE);
+        markLayerAsDirty(LAYERS.PORT);
+        return;
+      }
+    }
   }
 }
 
@@ -267,6 +289,7 @@ function keyPressed(p5, state) {
       // If there's an active cable, delete it
       if (state.activeCable) {
         state.activeCable = null;
+        state.activeCableColor = null;
         // Reset any control offsets if they exist in the state
         if ('controlOffsetY' in state) state.controlOffsetY = 0;
         if ('controlOffsetX' in state) state.controlOffsetX = 0;

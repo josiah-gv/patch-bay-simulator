@@ -40,6 +40,7 @@ const appState = {
   
   // Active cable state
   activeCable: null,
+  activeCableColor: null,
   cursorX: 0,
   cursorY: 0,
   prevCursorX: 0,

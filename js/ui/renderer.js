@@ -246,9 +246,10 @@ function drawCables(p5, state) {
     // Skip if port doesn't exist
     if (!activePort) return;
     
-    // Use the next color in the sequence for the active cable
-    const nextColor = state.cableColors[state.currentColorIndex];
-    ctx.strokeStyle = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
+    // Use the stored cable color if available (from picking up an existing cable)
+    // Otherwise use the next color in the sequence for new cables
+    const cableColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
+    ctx.strokeStyle = `rgb(${cableColor[0]}, ${cableColor[1]}, ${cableColor[2]})`;
     
     drawCableOnContext(
       ctx,
@@ -285,13 +286,12 @@ function drawPorts(p5, state, closestAvailablePort) {
         ctx.fillStyle = 'rgb(150, 100, 100)';
       }
     } else if (state.activeCable !== null && p.id === state.activeCable) {
-      // Highlight the active cable source port with the current cable color
-      const currentColor = state.cableColors[state.currentColorIndex];
+      // Highlight the active cable source port with the stored cable color
+      const currentColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
       ctx.fillStyle = `rgb(${currentColor[0] * 0.8}, ${currentColor[1] * 0.8}, ${currentColor[2] * 0.8})`;
     } else if (p === closestAvailablePort) {
-      // Highlight the closest available port with the color of the new cable
-      // Always use the next color in the sequence for highlighting, whether there's an active cable or not
-      const nextColor = state.cableColors[state.currentColorIndex];
+      // Highlight the closest available port with the color of the active cable (if any) or next color
+      const nextColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
       ctx.fillStyle = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
     } else {
       ctx.fillStyle = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`; // default gray for unconnected ports
