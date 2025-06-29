@@ -197,9 +197,9 @@ function drawCables(p5, state) {
   
   // Draw existing connections
   state.connections.forEach(conn => {
-    // Get the port objects from their indices
-    const portA = state.ports[conn.from];
-    const portB = state.ports[conn.to];
+    // Find the port objects by their IDs instead of using array indexing
+    const portA = state.ports.find(port => port.id === conn.from);
+    const portB = state.ports.find(port => port.id === conn.to);
     
     // Skip if ports don't exist
     if (!portA || !portB) return;
@@ -240,8 +240,8 @@ function drawCables(p5, state) {
   
   // Draw active cable if one exists
   if (state.activeCable !== null) {
-    // Get the port object from its index
-    const activePort = state.ports[state.activeCable];
+    // Find the port object by its ID instead of using array indexing
+    const activePort = state.ports.find(port => port.id === state.activeCable);
     
     // Skip if port doesn't exist
     if (!activePort) return;
