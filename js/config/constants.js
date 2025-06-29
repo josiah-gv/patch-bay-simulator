@@ -27,17 +27,24 @@ export const groupLabelTextSize = 17; // Reduced by 10% from 19 for group labels
 export const channelNumberTextSize = 16; // Increased by 30% from 12
 
 // Padding values
-export const topLabelPadding = 60; // Increased padding by 20% (from 50 to 60)
-export const bottomLabelPadding = 60; // Increased padding by 20% (from 50 to 60)
-export const channelNumberPadding = 36; // Increased padding by 20% (from 30 to 36)
+export const topLabelPadding = 50; // Increased padding by 20% (from 50 to 60)
+export const bottomLabelPadding = 50; // Increased padding by 20% (from 50 to 60)
+export const channelNumberPadding = 25; // Increased padding by 20% (from 30 to 36)
 
 // Colors
 export const backgroundColor = 30; // Dark background
 export const pageBackgroundColor = '#222222'; // Dark grey page background
 export const textColor = 255; // White text
-export const channelNumberColor = [180, 180, 180]; // Light grey for channel numbers
+export const textShadowColor = 0; // Black for text shadows (used in RGBA format)
+export const channelNumberColor = [200, 200, 200]; // Light grey for channel numbers
 export const defaultPortColor = 100; // Default gray for unconnected ports
 export const highlightPortColor = [100, 200, 100]; // Green highlight for closest available port
+
+// Text shadow settings
+export const textShadowOffsetX = 2; // Horizontal offset for text shadow
+export const textShadowOffsetY = 2; // Vertical offset for text shadow
+export const textShadowBlur = 4; // Blur amount for text shadow (smoother with Canvas API)
+export const textShadowOpacity = 1.0; // Opacity of text shadow (0.0 to 1.0)
 
 // Cable colors
 export const cableColors = [

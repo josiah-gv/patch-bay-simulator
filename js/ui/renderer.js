@@ -7,6 +7,11 @@
 import {
   backgroundColor,
   textColor,
+  textShadowColor,
+  textShadowOffsetX,
+  textShadowOffsetY,
+  textShadowBlur,
+  textShadowOpacity,
   channelNumberColor,
   defaultPortColor,
   highlightPortColor,
@@ -49,9 +54,6 @@ function draw(p5, state) {
     state.prevCursorX = state.cursorX;
     state.prevCursorY = state.cursorY;
 
-    // Draw group labels and channel numbers
-    drawLabelsAndNumbers(p5, state);
-
     // Draw connections
     drawConnections(p5, state);
 
@@ -65,6 +67,9 @@ function draw(p5, state) {
     
     // Draw ports
     drawPorts(p5, state, state.closestAvailablePort);
+    
+    // Draw group labels and channel numbers (moved after cables to ensure text is on top)
+    drawLabelsAndNumbers(p5, state);
   } catch (error) {
     console.error('Error in draw function:', error);
   }
@@ -198,6 +203,31 @@ function findClosestAvailablePort(state) {
  * @param {Object} p5 - The p5 instance
  * @param {Object} state - The application state
  */
+/**
+ * Helper function to draw text with shadow
+ * @param {Object} p5 - The p5 instance
+ * @param {string} text - The text to draw
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ */
+function drawTextWithShadow(p5, text, x, y) {
+  // Save current context state
+  p5.drawingContext.save();
+  
+  // Apply a smooth shadow using Canvas API with configurable opacity
+  p5.drawingContext.shadowColor = `rgba(${textShadowColor}, ${textShadowColor}, ${textShadowColor}, ${textShadowOpacity})`;
+  p5.drawingContext.shadowBlur = textShadowBlur;
+  p5.drawingContext.shadowOffsetX = textShadowOffsetX;
+  p5.drawingContext.shadowOffsetY = textShadowOffsetY;
+  
+  // Draw the text once with the shadow applied
+  p5.text(text, x, y);
+  
+  // Restore the context to remove shadow settings
+  p5.drawingContext.restore();
+
+}
+
 function drawLabelsAndNumbers(p5, state) {
   if (!state.currentRoom || !state.currentRoom.name) {
     console.warn('Cannot draw labels: currentRoom is not properly defined');
@@ -210,7 +240,7 @@ function drawLabelsAndNumbers(p5, state) {
     p5.textSize(titleTextSize);
     p5.textAlign(p5.CENTER, p5.TOP);
     p5.textStyle(p5.BOLD); // Make room title bold
-    p5.text(state.currentRoom.name, canvasWidth / 2, margin / 4); // Further adjusted for more padding
+    drawTextWithShadow(p5, state.currentRoom.name, canvasWidth / 2, margin / 4); // Further adjusted for more padding
     p5.textStyle(p5.NORMAL); // Reset text style
     
     // Set text properties for labels and numbers
@@ -290,7 +320,7 @@ function drawLabelsAndNumbers(p5, state) {
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
           p5.textSize(groupLabelTextSize);
-          p5.text(label, centerX, firstPort.y - topLabelPadding);
+          drawTextWithShadow(p5, label, centerX, firstPort.y - topLabelPadding);
           p5.textSize(channelNumberTextSize); // Reset to default size for other text
           p5.textStyle(p5.NORMAL); // Reset text style
         });
@@ -299,7 +329,7 @@ function drawLabelsAndNumbers(p5, state) {
         section.top.forEach(port => {
           if (port.channelNumber) {
             p5.fill(channelNumberColor[0], channelNumberColor[1], channelNumberColor[2]);
-            p5.text(port.channelNumber, port.x, port.y - channelNumberPadding);
+            drawTextWithShadow(p5, port.channelNumber, port.x, port.y - channelNumberPadding);
           }
         });
       }
@@ -351,7 +381,7 @@ function drawLabelsAndNumbers(p5, state) {
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
           p5.textSize(groupLabelTextSize);
-          p5.text(label, centerX, firstPort.y + bottomLabelPadding);
+          drawTextWithShadow(p5, label, centerX, firstPort.y + bottomLabelPadding);
           p5.textSize(channelNumberTextSize); // Reset to default size for other text
           p5.textStyle(p5.NORMAL); // Reset text style
         });
@@ -360,7 +390,7 @@ function drawLabelsAndNumbers(p5, state) {
         section.bottom.forEach(port => {
           if (port.channelNumber) {
             p5.fill(channelNumberColor[0], channelNumberColor[1], channelNumberColor[2]);
-            p5.text(port.channelNumber, port.x, port.y + channelNumberPadding);
+            drawTextWithShadow(p5, port.channelNumber, port.x, port.y + channelNumberPadding);
           }
         });
       }
