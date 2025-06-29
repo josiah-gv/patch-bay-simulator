@@ -11,7 +11,8 @@ import {
   canvasWidth,
   canvasHeight,
   pageBackgroundColor,
-  cableColors
+  cableColors,
+  fontFamily
 } from './config/constants.js';
 
 // Import models
@@ -69,6 +70,9 @@ window.setup = function() {
     // Create canvas with initial size (will be adjusted based on room data)
     createCanvas(appState.canvasWidth, appState.canvasHeight);
     document.body.style.backgroundColor = pageBackgroundColor;
+    
+    // Set the default font for the application
+    textFont(fontFamily);
 
     // Load rooms from CSV files
     loadRooms().then((rooms) => {

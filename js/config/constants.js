@@ -46,6 +46,9 @@ export const textShadowOffsetY = 2; // Vertical offset for text shadow
 export const textShadowBlur = 4; // Blur amount for text shadow (smoother with Canvas API)
 export const textShadowOpacity = 1.0; // Opacity of text shadow (0.0 to 1.0)
 
+// Font settings
+export const fontFamily = 'Montserrat'; // Main font for the application
+
 // Cable colors
 export const cableColors = [
   [100, 200, 255], // blue

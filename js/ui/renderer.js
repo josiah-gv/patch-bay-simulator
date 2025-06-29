@@ -24,7 +24,8 @@ import {
   bottomLabelPadding,
   channelNumberPadding,
   canvasWidth,
-  margin
+  margin,
+  fontFamily
 } from '../config/constants.js';
 
 // Import port utilities
@@ -213,6 +214,9 @@ function findClosestAvailablePort(state) {
 function drawTextWithShadow(p5, text, x, y) {
   // Save current context state
   p5.drawingContext.save();
+  
+  // Set the font family
+  p5.textFont(fontFamily);
   
   // Apply a smooth shadow using Canvas API with configurable opacity
   p5.drawingContext.shadowColor = `rgba(${textShadowColor}, ${textShadowColor}, ${textShadowColor}, ${textShadowOpacity})`;
