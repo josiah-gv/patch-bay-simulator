@@ -1,0 +1,50 @@
+/**
+ * Configuration constants for the Patch Bay application
+ */
+
+// Port and spacing dimensions
+export const portRadius = 7; // Increased by 30% from 5, rounded up
+export const safeZoneRadius = 31; // Increased by 30% from 24, rounded
+export const margin = 65; // Further increased from 52 for more padding
+export const portSpacing = 26; // Increased by 30% from 20
+export const rowSpacing = 60; // Further increased from 52 for more vertical padding
+export const sectionSpacing = 90; // Further increased from 78 for more horizontal padding between sections
+export const midGapWidth = 26; // width of gap between columns 24 and 25 (same as portSpacing)
+
+// Canvas dimensions
+export const canvasWidth = 1560; // Increased by 30% from 1200
+export const canvasHeight = 780; // Increased by 30% from 600
+
+// Cable appearance
+export const cableStrokeWeight = 5; // Increased by 30% from 4, rounded
+export const cableHoverThreshold = 16; // Increased threshold by 30% from 12
+export const cableSagBase = 39; // Increased by 30% from 30
+export const cableSagFactor = 0.065; // Increased by 30% from 0.05
+
+// Text sizes
+export const titleTextSize = 31; // Increased by 30% from 24
+export const groupLabelTextSize = 17; // Reduced by 10% from 19 for group labels
+export const channelNumberTextSize = 16; // Increased by 30% from 12
+
+// Padding values
+export const topLabelPadding = 60; // Increased padding by 20% (from 50 to 60)
+export const bottomLabelPadding = 60; // Increased padding by 20% (from 50 to 60)
+export const channelNumberPadding = 36; // Increased padding by 20% (from 30 to 36)
+
+// Colors
+export const backgroundColor = 30; // Dark background
+export const pageBackgroundColor = '#222222'; // Dark grey page background
+export const textColor = 255; // White text
+export const channelNumberColor = [180, 180, 180]; // Light grey for channel numbers
+export const defaultPortColor = 100; // Default gray for unconnected ports
+export const highlightPortColor = [100, 200, 100]; // Green highlight for closest available port
+
+// Cable colors
+export const cableColors = [
+  [100, 200, 255], // blue
+  [255, 100, 100], // red
+  [100, 255, 100], // green
+  [255, 255, 100], // yellow
+  [255, 100, 255], // magenta
+  [100, 255, 255]  // cyan
+];
