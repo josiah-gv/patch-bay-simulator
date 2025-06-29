@@ -280,16 +280,16 @@ function drawPorts(p5, state, closestAvailablePort) {
       // Find the connection this port belongs to
       const conn = state.connections.find(c => c.from === p.id || c.to === p.id);
       if (conn && conn.color) {
-        // Use the cable's color for the port, but slightly darker
-        ctx.fillStyle = `rgb(${conn.color[0] * 0.8}, ${conn.color[1] * 0.8}, ${conn.color[2] * 0.8})`;
+        // Use the cable's color for the port at full brightness
+        ctx.fillStyle = `rgb(${conn.color[0]}, ${conn.color[1]}, ${conn.color[2]})`;
       } else {
         // Fallback if no color found
         ctx.fillStyle = 'rgb(150, 100, 100)';
       }
     } else if (state.activeCable !== null && p.id === state.activeCable) {
-      // Highlight the active cable source port with the stored cable color
+      // Highlight the active cable source port with the stored cable color at full brightness
       const currentColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
-      ctx.fillStyle = `rgb(${currentColor[0] * 0.8}, ${currentColor[1] * 0.8}, ${currentColor[2] * 0.8})`;
+      ctx.fillStyle = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`;
     } else if (p === closestAvailablePort) {
       // Highlight the closest available port with the color of the active cable (if any) or next color
       const nextColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
