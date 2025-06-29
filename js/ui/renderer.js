@@ -33,6 +33,13 @@ import {
   fontFamily
 } from '../config/constants.js';
 
+// Import room box constants separately to avoid potential naming conflicts
+import {
+  roomBoxColor,
+  roomBoxStrokeWeight,
+  roomBoxPadding
+} from '../config/constants.js';
+
 // Import port utilities
 import { isPortConnected, getPortAt } from '../models/Port.js';
 
@@ -67,6 +74,9 @@ function draw(p5, state) {
 
     state.prevCursorX = state.cursorX;
     state.prevCursorY = state.cursorY;
+
+    // Draw room box first so it appears behind everything else
+    drawRoomBox(p5, state);
 
     // Draw connections (cables) before text so they appear behind
     drawConnections(p5, state);
@@ -565,6 +575,49 @@ function distToSegment(p, a, b) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+/**
+ * Draws a box around the entire room grid
+ * @param {Object} p5 - The p5 instance
+ * @param {Object} state - The application state
+ */
+function drawRoomBox(p5, state) {
+  console.log('Drawing room box');
+  if (!state.ports || state.ports.length === 0) {
+    console.log('No ports to draw room box around');
+    return;
+  }
+  
+  // Find the bounds of all ports
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  
+  // Calculate the bounds based on all ports
+  state.ports.forEach(port => {
+    minX = Math.min(minX, port.x);
+    minY = Math.min(minY, port.y);
+    maxX = Math.max(maxX, port.x);
+    maxY = Math.max(maxY, port.y);
+  });
+  
+  console.log('Room bounds:', minX, minY, maxX, maxY);
+  
+  // Add padding around the bounds
+  minX -= roomBoxPadding;
+  minY -= roomBoxPadding;
+  maxX += roomBoxPadding;
+  maxY += roomBoxPadding;
+  
+  console.log('Room bounds with padding:', minX, minY, maxX, maxY);
+  
+  // Draw the room box
+  p5.stroke(roomBoxColor[0], roomBoxColor[1], roomBoxColor[2]);
+  p5.strokeWeight(roomBoxStrokeWeight);
+  p5.noFill();
+  p5.rect(minX, minY, maxX - minX, maxY - minY);
+}
+
 // Export the functions
 export {
   draw,
@@ -572,5 +625,6 @@ export {
   drawCable,
   isMouseNearBezierSegments,
   distToSegment,
-  bezierPoint
+  bezierPoint,
+  drawRoomBox
 };

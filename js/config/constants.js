@@ -66,3 +66,8 @@ export const cableColors = [
   [255, 100, 255], // magenta
   [100, 255, 255]  // cyan
 ];
+
+// Room box appearance settings
+export const roomBoxColor = [150, 150, 150]; // Same as group box color by default
+export const roomBoxStrokeWeight = 2; // Slightly thicker than group boxes
+export const roomBoxPadding = 40; // Padding between the room box and the elements inside
