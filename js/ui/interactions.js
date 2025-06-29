@@ -29,11 +29,11 @@ function mousePressed(p5, state) {
   // Check if we're clicking on a connection to delete it
   for (let i = 0; i < state.connections.length; i++) {
     const conn = state.connections[i];
-    const a = state.ports[conn.from];
-    const b = state.ports[conn.to];
+    const a = state.ports.find(port => port.id === conn.from);
+    const b = state.ports.find(port => port.id === conn.to);
     
     // Check if both ports exist before checking if mouse is near the cable
-    if (a && b && isMouseNearBezierSegments(a, b, 0, 0, 10, p5, state)) {
+    if (a && b && isMouseNearBezierSegments(a, b, 0, 0, 16, p5, state)) {
       state.connections.splice(i, 1);
       // Mark cable and port layers as dirty since we removed a connection
       markLayerAsDirty(LAYERS.CABLE);
