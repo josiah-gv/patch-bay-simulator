@@ -68,16 +68,16 @@ function draw(p5, state) {
     state.prevCursorX = state.cursorX;
     state.prevCursorY = state.cursorY;
 
-    // Draw group labels and channel numbers with boxes (moved before cables to ensure boxes are behind)
-    drawLabelsAndNumbers(p5, state);
-    
-    // Draw connections
+    // Draw connections (cables) before text so they appear behind
     drawConnections(p5, state);
 
     // Draw active cable if one exists
     if (state.activeCable) {
       drawActiveCable(p5, state);
     }
+    
+    // Draw group labels and channel numbers with boxes (moved after cables to ensure text is on top)
+    drawLabelsAndNumbers(p5, state);
 
     // Find the closest available port for highlighting
     state.closestAvailablePort = findClosestAvailablePort(state);
@@ -85,11 +85,16 @@ function draw(p5, state) {
     // Draw ports
     drawPorts(p5, state, state.closestAvailablePort);
     
-    // Display current frame rate for debugging
-    p5.fill(255);
-    p5.textSize(12);
-    p5.textAlign(p5.LEFT, p5.TOP);
-    p5.text(`FPS: ${Math.round(p5.frameRate())}`, 10, 10);
+    // FPS calculation still happens but display is hidden
+    // The following code is commented out to hide the FPS counter while maintaining the functionality
+    // p5.noStroke();
+    // p5.fill(255);
+    // p5.textSize(12);
+    // p5.textAlign(p5.LEFT, p5.TOP);
+    // p5.text(`FPS: ${Math.round(p5.frameRate())}`, 10, 10);
+    
+    // Still calculate FPS for internal use
+    Math.round(p5.frameRate());
   } catch (error) {
     console.error('Error in draw function:', error);
   }
@@ -237,6 +242,9 @@ function drawTextWithShadow(p5, text, x, y) {
   // Set the font family
   p5.textFont(fontFamily);
   
+  // Ensure no stroke is applied to text
+  p5.noStroke();
+  
   // Apply a smooth shadow using Canvas API with configurable opacity
   p5.drawingContext.shadowColor = `rgba(${textShadowColor}, ${textShadowColor}, ${textShadowColor}, ${textShadowOpacity})`;
   p5.drawingContext.shadowBlur = textShadowBlur;
@@ -258,6 +266,9 @@ function drawLabelsAndNumbers(p5, state) {
   }
   
   try {
+    // Reset any previous fill color that might have been set by cable drawing
+    p5.noStroke();
+    
     // Draw room title
     p5.fill(textColor);
     p5.textSize(titleTextSize);
@@ -355,6 +366,7 @@ function drawLabelsAndNumbers(p5, state) {
           p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
           
           // Draw the label
+          p5.noStroke(); // Ensure no stroke is applied to text
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
           p5.textSize(groupLabelTextSize);
@@ -366,6 +378,7 @@ function drawLabelsAndNumbers(p5, state) {
         // Channel numbers
         section.top.forEach(port => {
           if (port.channelNumber) {
+            p5.noStroke(); // Ensure no stroke is applied to text
             p5.fill(channelNumberColor[0], channelNumberColor[1], channelNumberColor[2]);
             drawTextWithShadow(p5, port.channelNumber, port.x, port.y - channelNumberPadding);
           }
@@ -431,6 +444,7 @@ function drawLabelsAndNumbers(p5, state) {
           p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
           
           // Draw the label
+          p5.noStroke(); // Ensure no stroke is applied to text
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
           p5.textSize(groupLabelTextSize);
@@ -442,6 +456,7 @@ function drawLabelsAndNumbers(p5, state) {
         // Channel numbers
         section.bottom.forEach(port => {
           if (port.channelNumber) {
+            p5.noStroke(); // Ensure no stroke is applied to text
             p5.fill(channelNumberColor[0], channelNumberColor[1], channelNumberColor[2]);
             drawTextWithShadow(p5, port.channelNumber, port.x, port.y + channelNumberPadding);
           }
