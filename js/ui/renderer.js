@@ -199,8 +199,10 @@ function drawPorts(p5, state, closestAvailablePort) {
         p5.fill(150, 100, 100);
       }
     } else if (p === closestAvailablePort) {
-      // Highlight the closest available port regardless of whether we're holding a cable
-      p5.fill(highlightPortColor[0], highlightPortColor[1], highlightPortColor[2]); // green highlight for closest available port
+      // Highlight the closest available port with the color of the new cable
+      // Always use the next color in the sequence for highlighting, whether there's an active cable or not
+      const nextColor = state.cableColors[state.currentColorIndex];
+      p5.fill(nextColor[0], nextColor[1], nextColor[2]);
     } else {
       p5.fill(defaultPortColor); // default gray for unconnected ports
     }
