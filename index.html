@@ -6,6 +6,9 @@
   <title>Virtual Patch Bay</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --scale-factor: 1;
+    }
     body { 
       margin: 0; 
       padding: 0; 
@@ -14,9 +17,9 @@
     }
     #canvas-container {
       position: relative;
-      width: 1920px;
-      height: 1080px;
-      min-width: 1920px;
+      width: calc(1920px * var(--scale-factor));
+      height: calc(1080px * var(--scale-factor));
+      min-width: calc(1920px * var(--scale-factor));
       margin: 0 auto;
       overflow: visible;
     }

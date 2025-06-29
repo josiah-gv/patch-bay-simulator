@@ -2,6 +2,20 @@
  * Configuration constants for the Patch Bay application
  */
 
+/**
+ * Global scale factor for room sizing
+ * Adjust this single value to scale the entire room up or down
+ * 1.0 = original size, 1.5 = 150% size, 0.8 = 80% size
+ */
+export const SCALE_FACTOR = .8;
+
+/**
+ * Helper function to apply scaling to any dimension
+ * @param {number} value - The original value to scale
+ * @returns {number} - The scaled value, rounded to nearest integer
+ */
+export const scaled = (value) => Math.round(value * SCALE_FACTOR);
+
 // Layer IDs for multi-canvas setup
 export const layerIds = [
   'backgroundCanvas',
@@ -22,41 +36,41 @@ export const LAYERS = {
 
 
 // Port and spacing dimensions
-export const portRadius = 9; // Scaled for 1920x1080 resolution
-export const safeZoneRadius = portRadius * 1.5; // Match the highlight and selection radius
-export const margin = 80; // Scaled for 1920x1080 resolution
-export const portSpacing = 32; // Scaled for 1920x1080 resolution
-export const rowSpacing = 74; // Scaled for 1920x1080 resolution
-export const sectionSpacing = 111; // Scaled for 1920x1080 resolution
-export const midGapWidth = 32; // width of gap between columns 24 and 25 (same as portSpacing)
+export const portRadius = scaled(9); // Scaled for 1920x1080 resolution
+export const safeZoneRadius = scaled(portRadius * 1.5); // Match the highlight and selection radius
+export const margin = scaled(80); // Scaled for 1920x1080 resolution
+export const portSpacing = scaled(32); // Scaled for 1920x1080 resolution
+export const rowSpacing = scaled(74); // Scaled for 1920x1080 resolution
+export const sectionSpacing = scaled(111); // Scaled for 1920x1080 resolution
+export const midGapWidth = scaled(32); // width of gap between columns 24 and 25 (same as portSpacing)
 
 // Canvas dimensions
-export const canvasWidth = 1920; // Updated to 1920x1080 (Full HD) resolution
-export const canvasHeight = 1080; // Updated to 1920x1080 (Full HD) resolution
+export const canvasWidth = scaled(1920); // Updated to 1920x1080 (Full HD) resolution
+export const canvasHeight = scaled(1080); // Updated to 1920x1080 (Full HD) resolution
 
 // Cable appearance
-export const cableStrokeWeight = 6; // Scaled for 1920x1080 resolution
-export const cableHoverThreshold = 20; // Scaled for 1920x1080 resolution
-export const cableDeleteThreshold = 12; // Distance threshold for cable deletion (reduced from 16 for easier selection)
-export const cableSagBase = 48; // Scaled for 1920x1080 resolution
-export const cableSagFactor = 0.08; // Scaled for 1920x1080 resolution
+export const cableStrokeWeight = scaled(6); // Scaled for 1920x1080 resolution
+export const cableHoverThreshold = scaled(20); // Scaled for 1920x1080 resolution
+export const cableDeleteThreshold = scaled(12); // Distance threshold for cable deletion (reduced from 16 for easier selection)
+export const cableSagBase = scaled(48); // Scaled for 1920x1080 resolution
+export const cableSagFactor = 0.08; // Ratio - remains unscaled
 
 // Group box appearance
-export const groupBoxStrokeWeight = 2; // Scaled for 1920x1080 resolution
+export const groupBoxStrokeWeight = scaled(2); // Scaled for 1920x1080 resolution
 
 // Text sizes
-export const titleTextSize = 38; // Scaled for 1920x1080 resolution
-export const groupLabelTextSize = 21; // Scaled for 1920x1080 resolution
-export const channelNumberTextSize = 20; // Scaled for 1920x1080 resolution
+export const titleTextSize = scaled(38); // Scaled for 1920x1080 resolution
+export const groupLabelTextSize = scaled(21); // Scaled for 1920x1080 resolution
+export const channelNumberTextSize = scaled(20); // Scaled for 1920x1080 resolution
 
 // Padding values
-export const topLabelPadding = 62; // Scaled for 1920x1080 resolution
-export const bottomLabelPadding = 62; // Scaled for 1920x1080 resolution
-export const channelNumberPadding = 31; // Scaled for 1920x1080 resolution
+export const topLabelPadding = scaled(62); // Scaled for 1920x1080 resolution
+export const bottomLabelPadding = scaled(62); // Scaled for 1920x1080 resolution
+export const channelNumberPadding = scaled(31); // Scaled for 1920x1080 resolution
 
 // Group box padding
-export const groupBoxHorizontalPadding = 16; // Scaled for 1920x1080 resolution
-export const groupBoxVerticalPadding = 12; // Scaled for 1920x1080 resolution
+export const groupBoxHorizontalPadding = scaled(16); // Scaled for 1920x1080 resolution
+export const groupBoxVerticalPadding = scaled(12); // Scaled for 1920x1080 resolution
 
 // Colors
 export const backgroundColor = 30; // Dark background
@@ -69,9 +83,9 @@ export const highlightPortColor = [100, 200, 100]; // Green highlight for closes
 export const groupBoxColor = [150, 150, 150]; // Brighter grey for better visibility of group boxes
 
 // Text shadow settings
-export const textShadowOffsetX = 2; // Horizontal offset for text shadow
-export const textShadowOffsetY = 2; // Vertical offset for text shadow
-export const textShadowBlur = 4; // Blur amount for text shadow (smoother with Canvas API)
+export const textShadowOffsetX = scaled(2); // Horizontal offset for text shadow
+export const textShadowOffsetY = scaled(2); // Vertical offset for text shadow
+export const textShadowBlur = scaled(4); // Blur amount for text shadow (smoother with Canvas API)
 export const textShadowOpacity = 1.0; // Opacity of text shadow (0.0 to 1.0)
 
 // Font settings
@@ -89,9 +103,9 @@ export const cableColors = [
 
 // Room box appearance settings
 export const roomBoxColor = [150, 150, 150]; // Same as group box color by default
-export const roomBoxStrokeWeight = 2; // Slightly thicker than group boxes
-export const roomBoxPadding = 49; // Scaled for 1920x1080 resolution
-export const roomBoxTopPadding = 12; // Scaled for 1920x1080 resolution
-export const roomBoxBottomPadding = 49; // Scaled for 1920x1080 resolution
-export const roomBoxLeftPadding = 49; // Scaled for 1920x1080 resolution
-export const roomBoxRightPadding = 49; // Scaled for 1920x1080 resolution
+export const roomBoxStrokeWeight = scaled(2); // Slightly thicker than group boxes
+export const roomBoxPadding = scaled(49); // Scaled for 1920x1080 resolution
+export const roomBoxTopPadding = scaled(12); // Scaled for 1920x1080 resolution
+export const roomBoxBottomPadding = scaled(49); // Scaled for 1920x1080 resolution
+export const roomBoxLeftPadding = scaled(49); // Scaled for 1920x1080 resolution
+export const roomBoxRightPadding = scaled(49); // Scaled for 1920x1080 resolution
