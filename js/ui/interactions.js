@@ -52,6 +52,12 @@ function mousePressed(p5, state) {
         }
         // If the port is already connected, we do nothing and the user keeps holding the cable
       }
+    } else if (!state.activeCable) {
+      // If we clicked in empty space and we're not holding a cable,
+      // check if we should start a cable from the highlighted port
+      if (state.closestAvailablePort && !isPortConnected(state.closestAvailablePort, state.connections)) {
+        state.activeCable = state.closestAvailablePort;
+      }
     }
   } catch (error) {
     console.error('Error in mousePressed function:', error);

@@ -49,6 +49,7 @@ const appState = {
   hoverConnection: null,
   mouseX: 0,
   mouseY: 0,
+  closestAvailablePort: null, // Track closest available port even when not holding a cable
   
   // Canvas dimensions
   canvasWidth: canvasWidth,

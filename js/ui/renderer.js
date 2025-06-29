@@ -61,10 +61,10 @@ function draw(p5, state) {
     }
 
     // Find the closest available port for highlighting
-    const closestAvailablePort = findClosestAvailablePort(state);
+    state.closestAvailablePort = findClosestAvailablePort(state);
     
     // Draw ports
-    drawPorts(p5, state, closestAvailablePort);
+    drawPorts(p5, state, state.closestAvailablePort);
   } catch (error) {
     console.error('Error in draw function:', error);
   }
@@ -151,7 +151,8 @@ function drawPorts(p5, state, closestAvailablePort) {
         // Fallback if no color found
         p5.fill(150, 100, 100);
       }
-    } else if (state.activeCable && p !== state.activeCable && p === closestAvailablePort) {
+    } else if (p === closestAvailablePort) {
+      // Highlight the closest available port regardless of whether we're holding a cable
       p5.fill(highlightPortColor[0], highlightPortColor[1], highlightPortColor[2]); // green highlight for closest available port
     } else {
       p5.fill(defaultPortColor); // default gray for unconnected ports
@@ -167,25 +168,29 @@ function drawPorts(p5, state, closestAvailablePort) {
  * @returns {Object|null} - The closest available port or null
  */
 function findClosestAvailablePort(state) {
-  if (!state.activeCable) return null;
-  
   let closestAvailablePort = null;
-  let closestDistance = portRadius * 3; // Use a smaller radius for more precise highlighting
+  let closestDistance = Infinity;
+  const highlightThreshold = portRadius * 1.5; // Maximum distance to highlight a port (just slightly larger than the port itself)
   
   state.ports.forEach(p => {
-    if (p !== state.activeCable && !isPortConnected(p, state.connections)) {
-      const distance = Math.sqrt(
-        Math.pow(p.x - state.mouseX, 2) + 
-        Math.pow(p.y - state.mouseY, 2)
-      );
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestAvailablePort = p;
+    // Skip the active cable port if it exists
+    if ((state.activeCable && p !== state.activeCable) || !state.activeCable) {
+      // Only consider unconnected ports
+      if (!isPortConnected(p, state.connections)) {
+        const distance = Math.sqrt(
+          Math.pow(p.x - state.mouseX, 2) + 
+          Math.pow(p.y - state.mouseY, 2)
+        );
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestAvailablePort = p;
+        }
       }
     }
   });
   
-  return closestAvailablePort;
+  // Only return the closest port if it's within the highlight threshold
+  return closestDistance <= highlightThreshold ? closestAvailablePort : null;
 }
 
 /**
