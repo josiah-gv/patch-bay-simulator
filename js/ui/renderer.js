@@ -18,7 +18,8 @@ import {
   topLabelPadding,
   bottomLabelPadding,
   channelNumberPadding,
-  canvasWidth
+  canvasWidth,
+  margin
 } from '../config/constants.js';
 
 // Import port utilities
