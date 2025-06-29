@@ -284,6 +284,10 @@ function drawPorts(p5, state, closestAvailablePort) {
         // Fallback if no color found
         ctx.fillStyle = 'rgb(150, 100, 100)';
       }
+    } else if (state.activeCable !== null && p.id === state.activeCable) {
+      // Highlight the active cable source port with the current cable color
+      const currentColor = state.cableColors[state.currentColorIndex];
+      ctx.fillStyle = `rgb(${currentColor[0] * 0.8}, ${currentColor[1] * 0.8}, ${currentColor[2] * 0.8})`;
     } else if (p === closestAvailablePort) {
       // Highlight the closest available port with the color of the new cable
       // Always use the next color in the sequence for highlighting, whether there's an active cable or not
