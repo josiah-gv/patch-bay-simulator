@@ -24,8 +24,8 @@ function mousePressed(p5, state) {
       return;
     }
 
-    // Use a smaller radius for more precise port selection
-    const p = getPortAt(state.mouseX, state.mouseY, state.ports, portRadius * 2);
+    // Use the same radius as the highlight threshold for consistent behavior
+    const p = getPortAt(state.mouseX, state.mouseY, state.ports, portRadius * 1.5);
     if (p) {
       if (!state.activeCable) {
         // Start a new cable from this port if it's not already connected

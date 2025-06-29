@@ -4,7 +4,7 @@
 
 // Port and spacing dimensions
 export const portRadius = 7; // Increased by 30% from 5, rounded up
-export const safeZoneRadius = 31; // Increased by 30% from 24, rounded
+export const safeZoneRadius = portRadius * 1.5; // Match the highlight and selection radius
 export const margin = 65; // Further increased from 52 for more padding
 export const portSpacing = 26; // Increased by 30% from 20
 export const rowSpacing = 60; // Further increased from 52 for more vertical padding

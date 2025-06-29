@@ -90,12 +90,12 @@ function drawConnections(p5, state) {
       state
     );
     
-    // Use a smaller radius for more precise port detection
+    // Use the same radius as port selection and highlighting for consistency
     const inSafeZone = getPortAt(
       state.mouseX, 
       state.mouseY, 
       state.ports, 
-      portRadius * 3
+      portRadius * 1.5
     );
     
     // Get the cable's color
