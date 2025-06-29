@@ -21,6 +21,9 @@ export const cableHoverThreshold = 16; // Increased threshold by 30% from 12
 export const cableSagBase = 39; // Increased by 30% from 30
 export const cableSagFactor = 0.065; // Increased by 30% from 0.05
 
+// Group box appearance
+export const groupBoxStrokeWeight = 1; // Increased line weight for better visibility
+
 // Text sizes
 export const titleTextSize = 31; // Increased by 30% from 24
 export const groupLabelTextSize = 17; // Reduced by 10% from 19 for group labels
@@ -31,6 +34,10 @@ export const topLabelPadding = 50; // Increased padding by 20% (from 50 to 60)
 export const bottomLabelPadding = 50; // Increased padding by 20% (from 50 to 60)
 export const channelNumberPadding = 25; // Increased padding by 20% (from 30 to 36)
 
+// Group box padding
+export const groupBoxHorizontalPadding = 13; // Horizontal padding for group boxes
+export const groupBoxVerticalPadding = 10; // Vertical padding for group boxes
+
 // Colors
 export const backgroundColor = 30; // Dark background
 export const pageBackgroundColor = '#222222'; // Dark grey page background
@@ -39,6 +46,7 @@ export const textShadowColor = 0; // Black for text shadows (used in RGBA format
 export const channelNumberColor = [200, 200, 200]; // Light grey for channel numbers
 export const defaultPortColor = 100; // Default gray for unconnected ports
 export const highlightPortColor = [100, 200, 100]; // Green highlight for closest available port
+export const groupBoxColor = [150, 150, 150]; // Brighter grey for better visibility of group boxes
 
 // Text shadow settings
 export const textShadowOffsetX = 2; // Horizontal offset for text shadow

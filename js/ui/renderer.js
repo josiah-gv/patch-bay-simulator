@@ -15,15 +15,20 @@ import {
   channelNumberColor,
   defaultPortColor,
   highlightPortColor,
+  groupBoxColor,
   portRadius,
   cableStrokeWeight,
+  groupBoxStrokeWeight,
   titleTextSize,
   groupLabelTextSize,
   channelNumberTextSize,
   topLabelPadding,
   bottomLabelPadding,
   channelNumberPadding,
+  groupBoxHorizontalPadding,
+  groupBoxVerticalPadding,
   canvasWidth,
+  canvasHeight,
   margin,
   fontFamily
 } from '../config/constants.js';
@@ -55,6 +60,9 @@ function draw(p5, state) {
     state.prevCursorX = state.cursorX;
     state.prevCursorY = state.cursorY;
 
+    // Draw group labels and channel numbers with boxes (moved before cables to ensure boxes are behind)
+    drawLabelsAndNumbers(p5, state);
+    
     // Draw connections
     drawConnections(p5, state);
 
@@ -68,9 +76,6 @@ function draw(p5, state) {
     
     // Draw ports
     drawPorts(p5, state, state.closestAvailablePort);
-    
-    // Draw group labels and channel numbers (moved after cables to ensure text is on top)
-    drawLabelsAndNumbers(p5, state);
   } catch (error) {
     console.error('Error in draw function:', error);
   }
@@ -321,6 +326,21 @@ function drawLabelsAndNumbers(p5, state) {
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           const centerX = (firstPort.x + lastPort.x) / 2;
           
+          // Draw the group box
+          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
+          p5.strokeWeight(groupBoxStrokeWeight);
+          p5.noFill();
+          
+          // Calculate box dimensions - around the label and channel numbers
+          const boxLeft = firstPort.x - groupBoxHorizontalPadding;
+          const boxRight = lastPort.x + groupBoxHorizontalPadding;
+          const boxTop = firstPort.y - topLabelPadding - groupBoxVerticalPadding;
+          const boxBottom = firstPort.y - channelNumberPadding + groupBoxVerticalPadding;
+          
+          // Draw the rectangle - around both label and channel numbers
+          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+          
+          // Draw the label
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
           p5.textSize(groupLabelTextSize);
@@ -382,6 +402,21 @@ function drawLabelsAndNumbers(p5, state) {
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           const centerX = (firstPort.x + lastPort.x) / 2;
           
+          // Draw the group box
+          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
+          p5.strokeWeight(groupBoxStrokeWeight);
+          p5.noFill();
+          
+          // Calculate box dimensions - around the label and channel numbers
+          const boxLeft = firstPort.x - groupBoxHorizontalPadding;
+          const boxRight = lastPort.x + groupBoxHorizontalPadding;
+          const boxTop = firstPort.y + channelNumberPadding - groupBoxVerticalPadding;
+          const boxBottom = firstPort.y + bottomLabelPadding + groupBoxVerticalPadding;
+          
+          // Draw the rectangle - around both label and channel numbers
+          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+          
+          // Draw the label
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
           p5.textSize(groupLabelTextSize);
