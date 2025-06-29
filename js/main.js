@@ -83,6 +83,7 @@ window.setup = function() {
     p5Canvas.style.width = '100%';
     p5Canvas.style.height = '100%';
     p5Canvas.style.zIndex = '10'; // Place it on top for mouse events
+    p5Canvas.style.pointerEvents = 'auto'; // Ensure it can capture mouse events
     
     // Add the p5 canvas to the canvas container
     const canvasContainer = document.getElementById('canvas-container');
@@ -178,30 +179,37 @@ window.setup = function() {
   }
 };
 
+// Global mouse tracking variables
+let globalMouseX = 0;
+let globalMouseY = 0;
+
+// Add global mouse event listeners to track actual page coordinates
+document.addEventListener('mousemove', function(event) {
+  globalMouseX = event.clientX;
+  globalMouseY = event.clientY;
+});
+
 /**
  * p5.js draw function
- * This function is called repeatedly to render the canvas.
+ * This function is called continuously to render the application.
+ * It updates the mouse position and calls the renderer.
  */
 window.draw = function() {
   try {
-    // Get the canvas container element
+    // Get the canvas container element to calculate proper mouse coordinates
     const canvasContainer = document.getElementById('canvas-container');
-    if (!canvasContainer) {
-      console.error('Canvas container not found');
-      return;
+    if (canvasContainer) {
+      const rect = canvasContainer.getBoundingClientRect();
+      // Calculate mouse position relative to the canvas container using global mouse coordinates
+      const adjustedMouseX = globalMouseX - rect.left;
+      const adjustedMouseY = globalMouseY - rect.top;
+      appState.mouseX = adjustedMouseX * (appState.canvasWidth / rect.width);
+      appState.mouseY = adjustedMouseY * (appState.canvasHeight / rect.height);
+    } else {
+      // Fallback to direct p5.js coordinates if container not found
+      appState.mouseX = mouseX;
+      appState.mouseY = mouseY;
     }
-    
-    // Get the p5.js canvas element
-    const p5Canvas = document.querySelector('canvas');
-    if (!p5Canvas) {
-      console.error('p5.js canvas not found');
-      return;
-    }
-    
-    // Calculate the mouse position directly using p5.js mouseX/mouseY
-    // p5.js already handles the scaling and positioning internally
-    appState.mouseX = mouseX;
-    appState.mouseY = mouseY;
     
     // Log mouse coordinates for debugging
     // console.log('Mouse position:', appState.mouseX, appState.mouseY);
@@ -224,13 +232,22 @@ window.draw = function() {
  * Events are captured on the p5.js canvas but processed based on application state
  */
 window.mousePressed = function() {
-  // Only process mouse events if they occur within the canvas bounds
-  if (mouseX >= 0 && mouseX < appState.canvasWidth && 
-      mouseY >= 0 && mouseY < appState.canvasHeight) {
-    // Update mouse position in the state before processing the event
-    appState.mouseX = mouseX;
-    appState.mouseY = mouseY;
-    mousePressed(window, appState);
+  // Get the canvas container element to calculate proper mouse coordinates
+  const canvasContainer = document.getElementById('canvas-container');
+  if (canvasContainer) {
+    const rect = canvasContainer.getBoundingClientRect();
+    // Calculate mouse position relative to the canvas container using global coordinates
+    const adjustedMouseX = (globalMouseX - rect.left) * (appState.canvasWidth / rect.width);
+    const adjustedMouseY = (globalMouseY - rect.top) * (appState.canvasHeight / rect.height);
+    
+    // Only process mouse events if they occur within the canvas bounds
+    if (adjustedMouseX >= 0 && adjustedMouseX < appState.canvasWidth && 
+        adjustedMouseY >= 0 && adjustedMouseY < appState.canvasHeight) {
+      // Update mouse position in the state before processing the event
+      appState.mouseX = adjustedMouseX;
+      appState.mouseY = adjustedMouseY;
+      mousePressed(window, appState);
+    }
   }
 };
 
@@ -240,10 +257,22 @@ window.mousePressed = function() {
  * Events are captured on the p5.js canvas but processed based on application state
  */
 window.mouseMoved = function() {
-  // Update mouse position in the state regardless of whether it's in bounds
-  // This allows for smoother transitions when moving in and out of the canvas
-  appState.mouseX = mouseX;
-  appState.mouseY = mouseY;
+  // Get the canvas container element to calculate proper mouse coordinates
+  const canvasContainer = document.getElementById('canvas-container');
+  if (canvasContainer) {
+    const rect = canvasContainer.getBoundingClientRect();
+    // Calculate mouse position relative to the canvas container using global coordinates
+    // Update mouse position in the state regardless of whether it's in bounds
+    // This allows for smoother transitions when moving in and out of the canvas
+    const adjustedMouseX = (globalMouseX - rect.left) * (appState.canvasWidth / rect.width);
+    const adjustedMouseY = (globalMouseY - rect.top) * (appState.canvasHeight / rect.height);
+    appState.mouseX = adjustedMouseX;
+    appState.mouseY = adjustedMouseY;
+  } else {
+    // Fallback to direct p5.js coordinates if container not found
+    appState.mouseX = mouseX;
+    appState.mouseY = mouseY;
+  }
   mouseMoved(window, appState);
 };
 
