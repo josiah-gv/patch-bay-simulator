@@ -71,6 +71,9 @@ window.setup = function() {
     createCanvas(appState.canvasWidth, appState.canvasHeight);
     document.body.style.backgroundColor = pageBackgroundColor;
     
+    // Set a higher frame rate to match high refresh rate monitors
+    frameRate(120); // Increase to 120 FPS for smoother animations
+    
     // Set the default font for the application
     textFont(fontFamily);
 

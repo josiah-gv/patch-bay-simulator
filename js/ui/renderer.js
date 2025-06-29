@@ -50,12 +50,20 @@ function draw(p5, state) {
 
     const dx = state.cursorX - state.prevCursorX;
     const dy = state.cursorY - state.prevCursorY;
+    
+    // Calculate delta time factor (for frame rate independence)
+    const targetFrameRate = 60; // The frame rate the animation was designed for
+    const currentFrameRate = p5.frameRate() || targetFrameRate;
+    const deltaFactor = targetFrameRate / currentFrameRate;
+    
+    // Frame rate independent momentum calculations
+    const dampingFactor = 0.2 * deltaFactor;
+    
+    // Vertical jiggle momentum (frame rate independent)
+    state.controlOffsetY += (dy * 2 - state.controlOffsetY) * dampingFactor;
 
-    // Vertical jiggle momentum
-    state.controlOffsetY += (dy * 2 - state.controlOffsetY) * 0.2;
-
-    // Horizontal swing momentum
-    state.controlOffsetX += (dx * 2 - state.controlOffsetX) * 0.2;
+    // Horizontal swing momentum (frame rate independent)
+    state.controlOffsetX += (dx * 2 - state.controlOffsetX) * dampingFactor;
 
     state.prevCursorX = state.cursorX;
     state.prevCursorY = state.cursorY;
@@ -76,6 +84,12 @@ function draw(p5, state) {
     
     // Draw ports
     drawPorts(p5, state, state.closestAvailablePort);
+    
+    // Display current frame rate for debugging
+    p5.fill(255);
+    p5.textSize(12);
+    p5.textAlign(p5.LEFT, p5.TOP);
+    p5.text(`FPS: ${Math.round(p5.frameRate())}`, 10, 10);
   } catch (error) {
     console.error('Error in draw function:', error);
   }
