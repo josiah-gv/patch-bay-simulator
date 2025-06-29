@@ -44,10 +44,13 @@ function mousePressed(p5, state) {
           
           // Cycle to the next color for the next cable
           state.currentColorIndex = (state.currentColorIndex + 1) % state.cableColors.length;
+          
+          // Only reset the active cable if we successfully made a connection
+          state.activeCable = null;
+          state.controlOffsetY = 0;
+          state.controlOffsetX = 0;
         }
-        state.activeCable = null;
-        state.controlOffsetY = 0;
-        state.controlOffsetX = 0;
+        // If the port is already connected, we do nothing and the user keeps holding the cable
       }
     }
   } catch (error) {
