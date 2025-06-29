@@ -43,7 +43,7 @@ function mousePressed(p5, state) {
   }
 
   // Check if we're clicking on a port
-  const port = getPortAt(mouseX, mouseY, state.ports);
+  const port = getPortAt(mouseX, mouseY, state.ports, portRadius * 1.5);
   if (port !== null) {
     // If we have an active cable, try to connect it
     if (state.activeCable !== null) {
@@ -127,7 +127,7 @@ function mouseMoved(p5, state) {
   }
   
   // Check if we're hovering over a port
-  const hoveredPort = getPortAt(state.mouseX, state.mouseY, state.ports);
+  const hoveredPort = getPortAt(state.mouseX, state.mouseY, state.ports, portRadius * 1.5);
   if (hoveredPort !== null) {
     // Mark the port layer as dirty when hovering over a port
     markLayerAsDirty(LAYERS.PORT);
