@@ -101,8 +101,9 @@ function drawConnections(p5, state) {
     // Get the cable's color
     const cableColor = conn.color || state.cableColors[0]; // Default to first color if none stored
     
-    if (isHovering && !inSafeZone) {
+    if (isHovering && !inSafeZone && !state.activeCable) {
       // Use a darker shade of the cable's color for deletion hover
+      // Only set hover connection if we're not holding a cable
       p5.stroke(cableColor[0] * 0.6, cableColor[1] * 0.6, cableColor[2] * 0.6);
       state.hoverConnection = conn;
     } else {

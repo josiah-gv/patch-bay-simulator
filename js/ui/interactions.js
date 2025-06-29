@@ -17,7 +17,8 @@ import { getPortAt, isPortConnected } from '../models/Port.js';
 function mousePressed(p5, state) {
   try {
     // Check if we're hovering over a connection to delete it
-    if (state.hoverConnection) {
+    // Only allow deletion if we're not currently holding a cable
+    if (state.hoverConnection && !state.activeCable) {
       const index = state.connections.indexOf(state.hoverConnection);
       if (index !== -1) state.connections.splice(index, 1);
       return;
