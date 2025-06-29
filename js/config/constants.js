@@ -37,6 +37,7 @@ export const canvasHeight = 1080; // Updated to 1920x1080 (Full HD) resolution
 // Cable appearance
 export const cableStrokeWeight = 6; // Scaled for 1920x1080 resolution
 export const cableHoverThreshold = 20; // Scaled for 1920x1080 resolution
+export const cableDeleteThreshold = 12; // Distance threshold for cable deletion (reduced from 16 for easier selection)
 export const cableSagBase = 48; // Scaled for 1920x1080 resolution
 export const cableSagFactor = 0.08; // Scaled for 1920x1080 resolution
 

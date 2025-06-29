@@ -5,7 +5,7 @@
  */
 
 // Import constants
-import { portRadius, LAYERS } from '../config/constants.js';
+import { portRadius, cableDeleteThreshold, LAYERS } from '../config/constants.js';
 
 // Import port utilities
 import { getPortAt, isPortConnected } from '../models/Port.js';
@@ -112,7 +112,7 @@ function mousePressed(p5, state) {
       const b = state.ports.find(port => port.id === conn.to);
       
       // Check if both ports exist before checking if mouse is near the cable
-      if (a && b && isMouseNearBezierSegments(a, b, 0, 0, 16, p5, state)) {
+      if (a && b && isMouseNearBezierSegments(a, b, 0, 0, cableDeleteThreshold, p5, state)) {
         state.connections.splice(i, 1);
         // Mark cable and port layers as dirty since we removed a connection
         markLayerAsDirty(LAYERS.CABLE);

@@ -18,6 +18,7 @@ import {
   groupBoxColor,
   portRadius,
   cableStrokeWeight,
+  cableDeleteThreshold,
   groupBoxStrokeWeight,
   titleTextSize,
   groupLabelTextSize,
@@ -209,7 +210,7 @@ function drawCables(p5, state) {
       portB, 
       0, 
       0, 
-      16, // Hover threshold
+      cableDeleteThreshold, // Hover threshold for cable deletion
       p5,
       state
     );
