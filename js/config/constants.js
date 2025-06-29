@@ -70,4 +70,10 @@ export const cableColors = [
 // Room box appearance settings
 export const roomBoxColor = [150, 150, 150]; // Same as group box color by default
 export const roomBoxStrokeWeight = 2; // Slightly thicker than group boxes
-export const roomBoxPadding = 40; // Padding between the room box and the elements inside
+export const roomBoxPadding = 40; // Legacy padding (kept for backward compatibility)
+export const roomBoxHorizontalPadding = 40; // Horizontal padding between the room box and elements inside
+export const roomBoxVerticalPadding = 10; // Vertical padding between the room box and elements inside
+export const roomBoxTopPadding = 10; // Top padding between the room box and elements inside
+export const roomBoxBottomPadding = 40; // Bottom padding between the room box and elements inside
+export const roomBoxLeftPadding = 40; // Left padding between the room box and elements inside
+export const roomBoxRightPadding = 40; // Right padding between the room box and elements inside
