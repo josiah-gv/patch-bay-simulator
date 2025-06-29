@@ -81,8 +81,11 @@ function draw(p5, state) {
 
     // Draw room box first so it appears behind everything else
     drawRoomBox(p5, state);
+    
+    // Draw only the group boxes before cables so they appear behind cables
+    drawGroupBoxes(p5, state);
 
-    // Draw connections (cables) before text so they appear behind
+    // Draw connections (cables) after group boxes so they appear on top of boxes
     drawConnections(p5, state);
 
     // Draw active cable if one exists
@@ -90,8 +93,8 @@ function draw(p5, state) {
       drawActiveCable(p5, state);
     }
     
-    // Draw group labels and channel numbers with boxes (moved after cables to ensure text is on top)
-    drawLabelsAndNumbers(p5, state);
+    // Draw text labels and channel numbers after cables so they appear on top of everything
+    drawLabelsAndText(p5, state);
 
     // Find the closest available port for highlighting
     state.closestAvailablePort = findClosestAvailablePort(state);
@@ -273,7 +276,153 @@ function drawTextWithShadow(p5, text, x, y) {
 
 }
 
-function drawLabelsAndNumbers(p5, state) {
+// Function to draw only the group boxes (to be drawn behind cables)
+function drawGroupBoxes(p5, state) {
+  if (!state.currentRoom || !state.currentRoom.name || !state.ports || state.ports.length === 0) {
+    return;
+  }
+  
+  try {
+    // Group the ports by section and row
+    const portsBySection = {};
+    
+    state.ports.forEach(port => {
+      if (!port || typeof port.section === 'undefined' || !port.row) {
+        return;
+      }
+      
+      if (!portsBySection[port.section]) {
+        portsBySection[port.section] = { top: [], bottom: [] };
+      }
+      
+      portsBySection[port.section][port.row].push(port);
+    });
+    
+    // Draw group boxes for each section
+    Object.keys(portsBySection).forEach(sectionIndex => {
+      const section = portsBySection[sectionIndex];
+      
+      // Draw top row group boxes
+      if (section.top && section.top.length > 0) {
+        // Group labels - Create groups of consecutive ports with the same label
+        const labelGroups = [];
+        let currentGroup = null;
+        
+        // Process ports in order to find consecutive groups with the same label
+        section.top.forEach((port, index) => {
+          if (!port.groupLabel) return;
+          
+          // If this is a new group or a different label than the previous group
+          if (!currentGroup || currentGroup.internalId !== port.groupInternalId) {
+            // Save the previous group if it exists
+            if (currentGroup) {
+              labelGroups.push(currentGroup);
+            }
+            // Start a new group
+            currentGroup = {
+              label: port.groupLabel,
+              internalId: port.groupInternalId,
+              ports: [port]
+            };
+          } else {
+            // Add to the current group
+            currentGroup.ports.push(port);
+          }
+          
+          // If this is the last port, add the current group
+          if (index === section.top.length - 1 && currentGroup) {
+            labelGroups.push(currentGroup);
+          }
+        });
+        
+        // Draw each group box
+        labelGroups.forEach(group => {
+          const portsWithLabel = group.ports;
+          if (portsWithLabel.length === 0) return;
+          
+          const firstPort = portsWithLabel[0];
+          const lastPort = portsWithLabel[portsWithLabel.length - 1];
+          
+          // Draw the group box
+          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
+          p5.strokeWeight(groupBoxStrokeWeight);
+          p5.noFill();
+          
+          // Calculate box dimensions - around the label and channel numbers
+          const boxLeft = firstPort.x - groupBoxHorizontalPadding;
+          const boxRight = lastPort.x + groupBoxHorizontalPadding;
+          const boxTop = firstPort.y - topLabelPadding - groupBoxVerticalPadding;
+          const boxBottom = firstPort.y - channelNumberPadding + groupBoxVerticalPadding;
+          
+          // Draw the rectangle - around both label and channel numbers
+          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+        });
+      }
+      
+      // Draw bottom row group boxes
+      if (section.bottom && section.bottom.length > 0) {
+        // Group labels - Create groups of consecutive ports with the same label
+        const labelGroups = [];
+        let currentGroup = null;
+        
+        // Process ports in order to find consecutive groups with the same label
+        section.bottom.forEach((port, index) => {
+          if (!port.groupLabel) return;
+          
+          // If this is a new group or a different label than the previous group
+          if (!currentGroup || currentGroup.internalId !== port.groupInternalId) {
+            // Save the previous group if it exists
+            if (currentGroup) {
+              labelGroups.push(currentGroup);
+            }
+            // Start a new group
+            currentGroup = {
+              label: port.groupLabel,
+              internalId: port.groupInternalId,
+              ports: [port]
+            };
+          } else {
+            // Add to the current group
+            currentGroup.ports.push(port);
+          }
+          
+          // If this is the last port, add the current group
+          if (index === section.bottom.length - 1 && currentGroup) {
+            labelGroups.push(currentGroup);
+          }
+        });
+        
+        // Draw each group box
+        labelGroups.forEach(group => {
+          const portsWithLabel = group.ports;
+          if (portsWithLabel.length === 0) return;
+          
+          const firstPort = portsWithLabel[0];
+          const lastPort = portsWithLabel[portsWithLabel.length - 1];
+          
+          // Draw the group box
+          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
+          p5.strokeWeight(groupBoxStrokeWeight);
+          p5.noFill();
+          
+          // Calculate box dimensions - around the label and channel numbers
+          const boxLeft = firstPort.x - groupBoxHorizontalPadding;
+          const boxRight = lastPort.x + groupBoxHorizontalPadding;
+          const boxTop = firstPort.y + channelNumberPadding - groupBoxVerticalPadding;
+          const boxBottom = firstPort.y + bottomLabelPadding + groupBoxVerticalPadding;
+          
+          // Draw the rectangle - around both label and channel numbers
+          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error drawing group boxes:', error);
+  }
+}
+
+// Function to draw text labels and channel numbers (to be drawn on top of cables)
+function drawLabelsAndText(p5, state) {
   if (!state.currentRoom || !state.currentRoom.name) {
     console.warn('Cannot draw labels: currentRoom is not properly defined');
     return;
@@ -332,7 +481,6 @@ function drawLabelsAndNumbers(p5, state) {
           if (!port.groupLabel) return;
           
           // If this is a new group or a different label than the previous group
-          // Now using port.groupInternalId to distinguish between duplicate labels
           if (!currentGroup || currentGroup.internalId !== port.groupInternalId) {
             // Save the previous group if it exists
             if (currentGroup) {
@@ -355,7 +503,7 @@ function drawLabelsAndNumbers(p5, state) {
           }
         });
         
-        // Draw each label group
+        // Draw each label text
         labelGroups.forEach(group => {
           const label = group.label;
           const portsWithLabel = group.ports;
@@ -365,21 +513,7 @@ function drawLabelsAndNumbers(p5, state) {
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           const centerX = (firstPort.x + lastPort.x) / 2;
           
-          // Draw the group box
-          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
-          p5.strokeWeight(groupBoxStrokeWeight);
-          p5.noFill();
-          
-          // Calculate box dimensions - around the label and channel numbers
-          const boxLeft = firstPort.x - groupBoxHorizontalPadding;
-          const boxRight = lastPort.x + groupBoxHorizontalPadding;
-          const boxTop = firstPort.y - topLabelPadding - groupBoxVerticalPadding;
-          const boxBottom = firstPort.y - channelNumberPadding + groupBoxVerticalPadding;
-          
-          // Draw the rectangle - around both label and channel numbers
-          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
-          
-          // Draw the label
+          // Draw the label text
           p5.noStroke(); // Ensure no stroke is applied to text
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
@@ -410,7 +544,6 @@ function drawLabelsAndNumbers(p5, state) {
           if (!port.groupLabel) return;
           
           // If this is a new group or a different label than the previous group
-          // Now using port.groupInternalId to distinguish between duplicate labels
           if (!currentGroup || currentGroup.internalId !== port.groupInternalId) {
             // Save the previous group if it exists
             if (currentGroup) {
@@ -433,7 +566,7 @@ function drawLabelsAndNumbers(p5, state) {
           }
         });
         
-        // Draw each label group
+        // Draw each label text
         labelGroups.forEach(group => {
           const label = group.label;
           const portsWithLabel = group.ports;
@@ -443,21 +576,7 @@ function drawLabelsAndNumbers(p5, state) {
           const lastPort = portsWithLabel[portsWithLabel.length - 1];
           const centerX = (firstPort.x + lastPort.x) / 2;
           
-          // Draw the group box
-          p5.stroke(groupBoxColor[0], groupBoxColor[1], groupBoxColor[2]);
-          p5.strokeWeight(groupBoxStrokeWeight);
-          p5.noFill();
-          
-          // Calculate box dimensions - around the label and channel numbers
-          const boxLeft = firstPort.x - groupBoxHorizontalPadding;
-          const boxRight = lastPort.x + groupBoxHorizontalPadding;
-          const boxTop = firstPort.y + channelNumberPadding - groupBoxVerticalPadding;
-          const boxBottom = firstPort.y + bottomLabelPadding + groupBoxVerticalPadding;
-          
-          // Draw the rectangle - around both label and channel numbers
-          p5.rect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
-          
-          // Draw the label
+          // Draw the label text
           p5.noStroke(); // Ensure no stroke is applied to text
           p5.fill(textColor);
           p5.textStyle(p5.BOLD); // Make group labels bold
@@ -478,8 +597,16 @@ function drawLabelsAndNumbers(p5, state) {
       }
     });
   } catch (error) {
-    console.error('Error drawing labels and numbers:', error);
+    console.error('Error drawing labels and text:', error);
   }
+}
+
+// Combined function that calls both drawing functions
+function drawLabelsAndNumbers(p5, state) {
+  // This function is kept for backward compatibility
+  // It now just calls the two separate functions
+  drawGroupBoxes(p5, state);
+  drawLabelsAndText(p5, state);
 }
 
 /**
@@ -666,6 +793,8 @@ function drawRoomBox(p5, state) {
 export {
   draw,
   drawLabelsAndNumbers,
+  drawGroupBoxes,
+  drawLabelsAndText,
   drawCable,
   isMouseNearBezierSegments,
   distToSegment,
