@@ -158,6 +158,28 @@ function clearAllPatches(state) {
   state.connections = [];
 }
 
+/**
+ * Handles keyboard press events
+ * @param {Object} p5 - The p5 instance
+ * @param {Object} state - The application state
+ */
+function keyPressed(p5, state) {
+  try {
+    // Check if the Escape key was pressed
+    if (p5.keyCode === 27) { // 27 is the keyCode for Escape
+      // If there's an active cable, delete it
+      if (state.activeCable) {
+        state.activeCable = null;
+        state.controlOffsetY = 0;
+        state.controlOffsetX = 0;
+        console.log('Cable deleted with Escape key');
+      }
+    }
+  } catch (error) {
+    console.error('Error in keyPressed function:', error);
+  }
+}
+
 // Export the functions
 export {
   mousePressed,
@@ -165,5 +187,6 @@ export {
   isMouseNearBezierSegments,
   distToSegment,
   bezierPoint,
-  clearAllPatches
+  clearAllPatches,
+  keyPressed
 };

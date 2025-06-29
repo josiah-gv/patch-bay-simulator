@@ -21,7 +21,7 @@ import { createConnection, drawCable } from './models/Connection.js';
 
 // Import UI modules
 import { draw as renderDraw } from './ui/renderer.js';
-import { mousePressed, mouseMoved, clearAllPatches } from './ui/interactions.js';
+import { mousePressed, mouseMoved, clearAllPatches, keyPressed } from './ui/interactions.js';
 
 // Import utilities
 import { loadRooms, createFallbackRoom } from './utils/csvParser.js';
@@ -139,4 +139,12 @@ window.mousePressed = function() {
  */
 window.mouseMoved = function() {
   mouseMoved(window, appState);
+};
+
+/**
+ * p5.js keyPressed function
+ * This function is called when a key is pressed.
+ */
+window.keyPressed = function() {
+  keyPressed(window, appState);
 };
