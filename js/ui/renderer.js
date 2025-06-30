@@ -32,7 +32,11 @@ import {
   canvasHeight,
   margin,
   fontFamily,
-  LAYERS
+  LAYERS,
+  gridOrigin,
+  gridBounds,
+  portSpacing,
+  midGapWidth
 } from '../config/constants.js';
 
 // Import room box constants and grid system
@@ -379,8 +383,16 @@ function drawTextWithShadow(p5, text, x, y) {
  * @param {number} y - The y coordinate
  */
 function drawTextWithShadowOnContext(ctx, text, x, y) {
+  // Store current text alignment settings
+  const currentTextAlign = ctx.textAlign;
+  const currentTextBaseline = ctx.textBaseline;
+  
   // Save current context state
   ctx.save();
+  
+  // Restore text alignment after save
+  ctx.textAlign = currentTextAlign;
+  ctx.textBaseline = currentTextBaseline;
   
   // Apply shadow settings
   ctx.shadowColor = `rgba(${textShadowColor}, ${textShadowColor}, ${textShadowColor}, ${textShadowOpacity})`;
@@ -565,8 +577,12 @@ function drawText(p5, state) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     
-    // Draw room title with shadow
-    drawTextWithShadowOnContext(ctx, state.currentRoom.name, canvasWidth / 2, margin);
+    // Draw room title with shadow - centered over the actual port layout
+    // Port layout starts at gridBounds.padding.left + 40 and spans 48 ports with gap
+    const portLayoutStartX = gridBounds.padding.left + 40;
+    const portLayoutWidth = 24 * portSpacing + midGapWidth + 24 * portSpacing;
+    const portLayoutCenterX = gridOrigin.x + portLayoutStartX + (portLayoutWidth / 2);
+    drawTextWithShadowOnContext(ctx, state.currentRoom.name, portLayoutCenterX, margin);
     
     // Set text properties for labels and numbers
     ctx.font = `${channelNumberTextSize}px ${fontFamily}`;
