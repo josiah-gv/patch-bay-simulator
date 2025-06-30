@@ -3,21 +3,41 @@
  */
 
 /**
- * Global scale factor for room sizing
- * Now reads from CSS variable to allow dynamic updates
+ * Fixed scale factor for room sizing
+ * Static value - no longer reads from CSS variable
  */
-export const SCALE_FACTOR = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 0.8;
+export const SCALE_FACTOR = 0.8;
 
 /**
- * Helper function to apply scaling to any dimension
+ * User-adjustable zoom modifier
+ * This will be controlled by UI elements
+ */
+export let ZOOM_MODIFIER = 1.0;
+
+/**
+ * Helper function to apply fixed scaling with zoom modifier
  * @param {number} value - The original value to scale
- * @returns {number} - The scaled value, rounded to nearest integer
+ * @returns {number} - The scaled value with zoom applied, rounded to nearest integer
  */
 export const scaled = (value) => {
-  // Get current scale factor from CSS variable (fallback to 0.8)
-  const currentScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 0.8;
-  return Math.round(value * currentScale);
+  return Math.round(value * SCALE_FACTOR * ZOOM_MODIFIER);
 };
+
+/**
+ * Updates the zoom modifier
+ * @param {number} newZoom - The new zoom value
+ */
+export function setZoomModifier(newZoom) {
+  ZOOM_MODIFIER = Math.max(0.1, Math.min(3.0, newZoom)); // Clamp between 0.1x and 3.0x
+}
+
+/**
+ * Gets the current zoom modifier
+ * @returns {number} - The current zoom modifier
+ */
+export function getZoomModifier() {
+  return ZOOM_MODIFIER;
+}
 
 // Layer IDs for multi-canvas setup
 export const layerIds = [

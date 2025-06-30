@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patch Bay Simulator</title>
     <style>
         * {
@@ -38,8 +38,7 @@
 
         .container {
             display: flex;
-            min-height: calc(100vh - 80px);
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            height: 800px; /* Fixed height instead of viewport-based */
             position: relative; /* For absolute positioning of sidebar */
         }
 
@@ -52,7 +51,7 @@
             padding: 40px 32px;
             flex-shrink: 0;
             position: absolute;
-            height: calc(100vh - 80px);
+            height: 800px; /* Fixed height instead of viewport-based */
             left: -320px; /* Start collapsed */
             transition: left 0.3s ease-in-out;
             z-index: 50;
@@ -126,11 +125,10 @@
         }
 
         .main-content {
-            flex: 1;
+            width: 1400px; /* Fixed width instead of flexible */
             padding: 40px;
             min-width: 0; /* Allow content to shrink below its natural width */
             background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
-            width: 100%; /* Take up full width when sidebar is collapsed */
             transition: margin-left 0.3s ease-in-out;
             position: relative;
             z-index: 1; /* Ensure main content is above sidebar when collapsed */
@@ -177,6 +175,89 @@
             line-height: 1.6;
         }
 
+        /* Zoom Controls Styling */
+        .zoom-controls {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .zoom-slider-container label {
+            display: block;
+            font-size: 13px;
+            color: #f9fafb;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        #zoom-value {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        #zoom-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            margin-bottom: 16px;
+            -webkit-appearance: none;
+        }
+
+        #zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        #zoom-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .zoom-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .zoom-preset {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .zoom-preset:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #f9fafb;
+        }
+
+        .zoom-preset.active {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+
         /* Duplicate .main-content rule removed - consolidated above */
 
         .room-selector {
@@ -187,6 +268,7 @@
             margin-bottom: 48px;
             position: relative;
             z-index: 2; /* Ensure room selector is above main content */
+            width: 1320px; /* Fixed width to prevent scaling */
         }
 
         .room-selector h2 {
@@ -201,7 +283,7 @@
 
         .room-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(4, 140px); /* Fixed 4 columns at 140px each */
             gap: 16px;
             position: relative;
             z-index: 3; /* Ensure grid container is properly layered */
@@ -273,7 +355,7 @@
             padding: 40px;
             backdrop-filter: blur(20px);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            max-width: 100%;
+            width: 1320px; /* Fixed width instead of max-width: 100% */
             overflow: hidden;
         }
 
@@ -284,11 +366,10 @@
 
         #canvas-container {
             position: relative;
-            width: 100%;
-            height: 0;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            width: 1229px; /* Fixed width: 1536 * 0.8 */
+            height: 608px; /* Fixed height: 760 * 0.8 */
             margin: 0 auto;
-            overflow: hidden; /* Changed from visible to hidden */
+            overflow: hidden;
         }
 
         canvas {
@@ -313,57 +394,7 @@
             --scale-factor: 0.8;
         }
         
-        /* Media queries for responsive design */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 280px;
-                left: -280px; /* Adjust collapsed position for smaller width */
-                padding: 30px 24px;
-            }
-            
-            .main-content {
-                padding: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                max-width: 320px;
-                left: -100%; /* Fully off-screen on mobile */
-                border-right: 1px solid rgba(255, 255, 255, 0.05);
-                border-bottom: none;
-                padding: 24px 20px;
-                height: 100vh;
-                top: 0;
-                z-index: 1000; /* Higher z-index on mobile */
-            }
-            
-            .sidebar-toggle {
-                top: 80px; /* Position below header on mobile */
-                right: -40px;
-            }
-            
-            .main-content {
-                padding: 24px;
-            }
-            
-            .room-selector {
-                padding: 24px 16px 24px 24px; /* Maintain reduced right padding on mobile */
-            }
-            
-            .room-grid {
-                margin-right: -32px; /* Increase margin for mobile to prevent cutoff */
-            }
-            
-            .patch-bay-section {
-                padding: 24px;
-            }
-        }
+        /* Responsive media queries removed - using fixed scale with manual zoom controls */
     </style>
 </head>
 <body>
@@ -396,6 +427,23 @@
                 <div class="tip-card">
                     <h4>Label System</h4>
                     <p>Each port displays clear labels showing input/output designations and connection types for easy identification.</p>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Zoom Controls</h3>
+                <div class="zoom-controls">
+                    <div class="zoom-slider-container">
+                        <label for="zoom-slider">Zoom Level: <span id="zoom-value">100%</span></label>
+                        <input type="range" id="zoom-slider" min="10" max="300" value="100" step="5">
+                        <div class="zoom-presets">
+                            <button class="zoom-preset" data-zoom="50">50%</button>
+                            <button class="zoom-preset" data-zoom="75">75%</button>
+                            <button class="zoom-preset" data-zoom="100">100%</button>
+                            <button class="zoom-preset" data-zoom="150">150%</button>
+                            <button class="zoom-preset" data-zoom="200">200%</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -472,6 +520,44 @@
                 toggleIcon.classList.remove('active');
             }
         });
+        
+        // Zoom controls functionality
+        const zoomSlider = document.getElementById('zoom-slider');
+        const zoomValue = document.getElementById('zoom-value');
+        const zoomPresets = document.querySelectorAll('.zoom-preset');
+        
+        // Update zoom display and notify main.js
+        function updateZoom(value) {
+            const zoomPercent = value;
+            const zoomModifier = value / 100;
+            
+            zoomValue.textContent = zoomPercent + '%';
+            zoomSlider.value = zoomPercent;
+            
+            // Update active preset button
+            zoomPresets.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.zoom == zoomPercent);
+            });
+            
+            // Notify the main application about zoom change
+            window.dispatchEvent(new CustomEvent('zoomChanged', { detail: { zoomModifier } }));
+        }
+        
+        // Zoom slider event
+        zoomSlider.addEventListener('input', function() {
+            updateZoom(parseInt(this.value));
+        });
+        
+        // Zoom preset buttons
+        zoomPresets.forEach(button => {
+            button.addEventListener('click', function() {
+                const zoomPercent = parseInt(this.dataset.zoom);
+                updateZoom(zoomPercent);
+            });
+        });
+        
+        // Initialize zoom at 100%
+        updateZoom(100);
     </script>
     
     <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>
