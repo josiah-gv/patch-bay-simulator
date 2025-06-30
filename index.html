@@ -40,14 +40,89 @@
             display: flex;
             min-height: calc(100vh - 80px);
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            position: relative; /* For absolute positioning of sidebar */
         }
 
         .sidebar {
             width: 320px;
-            background: rgba(15, 15, 17, 0.9);
+            background: rgba(15, 15, 17, 0.8); /* Slightly more transparent */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); /* For Safari */
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             padding: 40px 32px;
             flex-shrink: 0;
+            position: absolute;
+            height: calc(100vh - 80px);
+            left: -320px; /* Start collapsed */
+            transition: left 0.3s ease-in-out;
+            z-index: 50;
+        }
+        
+        .sidebar.expanded {
+            left: 0;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            top: 20px;
+            right: -40px;
+            width: 40px;
+            height: 40px;
+            background: rgba(15, 15, 17, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 51;
+            transition: background 0.2s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            background: rgba(30, 30, 35, 0.9);
+        }
+        
+        .sidebar-toggle-icon {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Arrow styling */
+        .sidebar-toggle-icon:before {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid rgba(255, 255, 255, 0.7);
+            border-right: 2px solid rgba(255, 255, 255, 0.7);
+            transform: rotate(45deg); /* Right arrow by default (when sidebar is collapsed) */
+            transition: transform 0.3s ease;
+        }
+        
+        /* When sidebar is expanded, show left arrow */
+        .sidebar.expanded .sidebar-toggle-icon:before {
+            transform: rotate(-135deg);
+        }
+        
+        /* Animated hamburger icon */
+        .sidebar-toggle-icon.active span:nth-child(1) {
+            top: 10px;
+            transform: rotate(45deg);
+        }
+        
+        .sidebar-toggle-icon.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .sidebar-toggle-icon.active span:nth-child(3) {
+            top: 10px;
+            transform: rotate(-45deg);
         }
 
         .main-content {
@@ -55,6 +130,8 @@
             padding: 40px;
             min-width: 0; /* Allow content to shrink below its natural width */
             background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
+            width: 100%; /* Take up full width when sidebar is collapsed */
+            transition: margin-left 0.3s ease-in-out;
         }
 
         .sidebar-section {
@@ -235,6 +312,7 @@
         @media (max-width: 1024px) {
             .sidebar {
                 width: 280px;
+                left: -280px; /* Adjust collapsed position for smaller width */
                 padding: 30px 24px;
             }
             
@@ -250,9 +328,19 @@
             
             .sidebar {
                 width: 100%;
-                border-right: none;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                max-width: 320px;
+                left: -100%; /* Fully off-screen on mobile */
+                border-right: 1px solid rgba(255, 255, 255, 0.05);
+                border-bottom: none;
                 padding: 24px 20px;
+                height: 100vh;
+                top: 0;
+                z-index: 1000; /* Higher z-index on mobile */
+            }
+            
+            .sidebar-toggle {
+                top: 80px; /* Position below header on mobile */
+                right: -40px;
             }
             
             .main-content {
@@ -276,6 +364,9 @@
     
     <div class="container">
         <div class="sidebar">
+            <div class="sidebar-toggle">
+                <div class="sidebar-toggle-icon"></div>
+            </div>
             <div class="sidebar-section">
                 <h3>Usage Guide</h3>
                 <div class="tip-card">
@@ -357,6 +448,20 @@
                 // Add active class to clicked card
                 this.classList.add('active');
             });
+        });
+        
+        // Sidebar toggle functionality
+        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('expanded');
+            
+            // Update toggle icon appearance
+            const toggleIcon = this.querySelector('.sidebar-toggle-icon');
+            if (sidebar.classList.contains('expanded')) {
+                toggleIcon.classList.add('active');
+            } else {
+                toggleIcon.classList.remove('active');
+            }
         });
     </script>
     
