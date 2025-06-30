@@ -175,88 +175,7 @@
             line-height: 1.6;
         }
 
-        /* Zoom Controls Styling */
-        .zoom-controls {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 24px;
-        }
 
-        .zoom-slider-container label {
-            display: block;
-            font-size: 13px;
-            color: #f9fafb;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-
-        #zoom-value {
-            color: #10b981;
-            font-weight: 600;
-        }
-
-        #zoom-slider {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            outline: none;
-            margin-bottom: 16px;
-            -webkit-appearance: none;
-        }
-
-        #zoom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #10b981;
-            cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        #zoom-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #10b981;
-            cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .zoom-presets {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .zoom-preset {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            color: #9ca3af;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .zoom-preset:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-            color: #f9fafb;
-        }
-
-        .zoom-preset.active {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: rgba(16, 185, 129, 0.4);
-            color: #10b981;
-        }
 
         /* Duplicate .main-content rule removed - consolidated above */
 
@@ -430,22 +349,7 @@
                 </div>
             </div>
             
-            <div class="sidebar-section">
-                <h3>Zoom Controls</h3>
-                <div class="zoom-controls">
-                    <div class="zoom-slider-container">
-                        <label for="zoom-slider">Zoom Level: <span id="zoom-value">100%</span></label>
-                        <input type="range" id="zoom-slider" min="10" max="300" value="100" step="5">
-                        <div class="zoom-presets">
-                            <button class="zoom-preset" data-zoom="50">50%</button>
-                            <button class="zoom-preset" data-zoom="75">75%</button>
-                            <button class="zoom-preset" data-zoom="100">100%</button>
-                            <button class="zoom-preset" data-zoom="150">150%</button>
-                            <button class="zoom-preset" data-zoom="200">200%</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         </div>
         
         <div class="main-content">
@@ -521,43 +425,7 @@
             }
         });
         
-        // Zoom controls functionality
-        const zoomSlider = document.getElementById('zoom-slider');
-        const zoomValue = document.getElementById('zoom-value');
-        const zoomPresets = document.querySelectorAll('.zoom-preset');
-        
-        // Update zoom display and notify main.js
-        function updateZoom(value) {
-            const zoomPercent = value;
-            const zoomModifier = value / 100;
-            
-            zoomValue.textContent = zoomPercent + '%';
-            zoomSlider.value = zoomPercent;
-            
-            // Update active preset button
-            zoomPresets.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.zoom == zoomPercent);
-            });
-            
-            // Notify the main application about zoom change
-            window.dispatchEvent(new CustomEvent('zoomChanged', { detail: { zoomModifier } }));
-        }
-        
-        // Zoom slider event
-        zoomSlider.addEventListener('input', function() {
-            updateZoom(parseInt(this.value));
-        });
-        
-        // Zoom preset buttons
-        zoomPresets.forEach(button => {
-            button.addEventListener('click', function() {
-                const zoomPercent = parseInt(this.dataset.zoom);
-                updateZoom(zoomPercent);
-            });
-        });
-        
-        // Initialize zoom at 100%
-        updateZoom(100);
+
     </script>
     
     <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.min.js"></script>

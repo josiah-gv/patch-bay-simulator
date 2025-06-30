@@ -9,34 +9,12 @@
 export const SCALE_FACTOR = 0.8;
 
 /**
- * User-adjustable zoom modifier
- * This will be controlled by UI elements
- */
-export let ZOOM_MODIFIER = 1.0;
-
-/**
- * Helper function to apply fixed scaling with zoom modifier
+ * Helper function to apply fixed scaling
  * @param {number} value - The original value to scale
- * @returns {number} - The scaled value with zoom applied, rounded to nearest integer
+ * @returns {number} - The scaled value, rounded to nearest integer
  */
 export const scaled = (value) => {
-  return Math.round(value * SCALE_FACTOR * ZOOM_MODIFIER);
-};
-
-/**
- * Updates the zoom modifier
- * @param {number} newZoom - The new zoom value
- */
-export function setZoomModifier(newZoom) {
-  ZOOM_MODIFIER = Math.max(0.1, Math.min(3.0, newZoom)); // Clamp between 0.1x and 3.0x
-}
-
-/**
- * Gets the current zoom modifier
- * @returns {number} - The current zoom modifier
- */
-export function getZoomModifier() {
-  return ZOOM_MODIFIER;
+  return Math.round(value * SCALE_FACTOR);
 }
 
 // Layer IDs for multi-canvas setup

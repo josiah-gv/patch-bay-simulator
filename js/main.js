@@ -12,9 +12,7 @@ import {
   canvasHeight,
   pageBackgroundColor,
   cableColors,
-  fontFamily,
-  setZoomModifier,
-  getZoomModifier
+  fontFamily
 } from './config/constants.js';
 
 // Import models
@@ -198,15 +196,12 @@ window.draw = function() {
       // Use appState dimensions for consistent coordinate mapping
       const rawMouseX = adjustedMouseX * (appState.canvasWidth / rect.width);
       const rawMouseY = adjustedMouseY * (appState.canvasHeight / rect.height);
-      // Account for zoom modifier in mouse coordinates
-      const zoomModifier = getZoomModifier();
-      appState.mouseX = rawMouseX / zoomModifier;
-      appState.mouseY = rawMouseY / zoomModifier;
+      appState.mouseX = rawMouseX;
+      appState.mouseY = rawMouseY;
     } else {
       // Fallback to direct p5.js coordinates if container not found
-      const zoomModifier = getZoomModifier();
-      appState.mouseX = mouseX / zoomModifier;
-      appState.mouseY = mouseY / zoomModifier;
+      appState.mouseX = mouseX;
+      appState.mouseY = mouseY;
     }
     
     // Log mouse coordinates for debugging
@@ -241,10 +236,9 @@ window.mousePressed = function() {
     // Only process mouse events if they occur within the canvas bounds
     if (rawMouseX >= 0 && rawMouseX < appState.canvasWidth && 
         rawMouseY >= 0 && rawMouseY < appState.canvasHeight) {
-      // Update mouse position in the state before processing the event, accounting for zoom
-      const zoomModifier = getZoomModifier();
-      appState.mouseX = rawMouseX / zoomModifier;
-      appState.mouseY = rawMouseY / zoomModifier;
+      // Update mouse position in the state before processing the event
+      appState.mouseX = rawMouseX;
+      appState.mouseY = rawMouseY;
       mousePressed(window, appState);
     }
   }
@@ -265,15 +259,12 @@ window.mouseMoved = function() {
     // This allows for smoother transitions when moving in and out of the canvas
     const rawMouseX = (globalMouseX - rect.left) * (appState.canvasWidth / rect.width);
     const rawMouseY = (globalMouseY - rect.top) * (appState.canvasHeight / rect.height);
-    // Account for zoom modifier in mouse coordinates
-    const zoomModifier = getZoomModifier();
-    appState.mouseX = rawMouseX / zoomModifier;
-    appState.mouseY = rawMouseY / zoomModifier;
+    appState.mouseX = rawMouseX;
+    appState.mouseY = rawMouseY;
   } else {
     // Fallback to direct p5.js coordinates if container not found
-    const zoomModifier = getZoomModifier();
-    appState.mouseX = mouseX / zoomModifier;
-    appState.mouseY = mouseY / zoomModifier;
+    appState.mouseX = mouseX;
+    appState.mouseY = mouseY;
   }
   mouseMoved(window, appState);
 };
@@ -287,17 +278,4 @@ window.keyPressed = function() {
   keyPressed(window, appState);
 };
 
-// Note: Dynamic scaling system removed - now using fixed scale with user zoom controls
-
-// Listen for zoom changes from UI controls
-window.addEventListener('zoomChanged', function(event) {
-  const { zoomModifier } = event.detail;
-  
-  // Update the zoom modifier in constants
-  setZoomModifier(zoomModifier);
-  
-  // Mark all layers as dirty to trigger redraw with new zoom
-  if (typeof markAllLayersAsDirty === 'function') {
-    markAllLayersAsDirty();
-  }
-});
+// Note: Dynamic scaling system removed
