@@ -97,7 +97,7 @@ export const groupBoxVerticalPadding = scaled(12); // Scaled for 1920x1080 resol
 
 // Colors
 export const backgroundColor = 30; // Dark background
-export const pageBackgroundColor = '#222222'; // Dark grey page background
+export const pageBackgroundColor = '#0d0d0f'; // Dark grey page background
 export const textColor = 255; // White text
 export const textShadowColor = 0; // Black for text shadows (used in RGBA format)
 export const channelNumberColor = [200, 200, 200]; // Light grey for channel numbers
