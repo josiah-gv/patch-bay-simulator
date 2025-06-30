@@ -11,7 +11,10 @@ import {
   rowSpacing,
   sectionSpacing,
   canvasWidth,
-  canvasHeight
+  canvasHeight,
+  gridOrigin,
+  gridBounds,
+  gridToCanvas
 } from '../config/constants.js';
 
 // Import utility functions
@@ -25,16 +28,18 @@ import { findGroupForPort } from '../utils/csvParser.js';
  */
 function generatePortsFromRoom(room) {
   const ports = [];
-  let yOffset = margin + 120; // Increased extra space to move room down
   let updatedCanvasHeight = canvasHeight;
   
   console.log(`Generating ports for room: ${room.name} with ${room.sections.length} sections`);
+  
+  // Grid-relative positioning
+  let gridYOffset = gridBounds.padding.top + 60; // Start below room title area
+  const gridStartX = gridBounds.padding.left + 40; // Left margin within grid
   
   // For each section in the room
   room.sections.forEach((section, sectionIndex) => {
     // Calculate the width needed for 48 ports with spacing
     const sectionWidth = 24 * portSpacing + midGapWidth + 24 * portSpacing;
-    const startX = (canvasWidth - sectionWidth) / 2;
     
     console.log(`Processing section ${sectionIndex}`);
     
@@ -42,7 +47,10 @@ function generatePortsFromRoom(room) {
     for (let i = 0; i < 48; i++) {
       // Add a gap between columns 24 and 25
       const xOffset = i < 24 ? 0 : midGapWidth;
-      const x = startX + i * portSpacing + xOffset;
+      const gridX = gridStartX + i * portSpacing + xOffset;
+      
+      // Convert grid coordinates to canvas coordinates
+      const canvasPos = gridToCanvas(gridX, gridYOffset);
       
       // Safely access port ID
       const portId = section.topRow.portIds[i];
@@ -53,8 +61,10 @@ function generatePortsFromRoom(room) {
         
         const groupInfo = findGroupForPort(section.topRow.groupLabels, i);
         ports.push({
-          x: x,
-          y: yOffset,
+          x: canvasPos.x,
+          y: canvasPos.y,
+          gridX: gridX,
+          gridY: gridYOffset,
           id: portId.trim(),
           channelNumber: channelNumber,
           groupLabel: groupInfo.label,
@@ -69,7 +79,11 @@ function generatePortsFromRoom(room) {
     for (let i = 0; i < 48; i++) {
       // Add a gap between columns 24 and 25
       const xOffset = i < 24 ? 0 : midGapWidth;
-      const x = startX + i * portSpacing + xOffset;
+      const gridX = gridStartX + i * portSpacing + xOffset;
+      const gridY = gridYOffset + rowSpacing;
+      
+      // Convert grid coordinates to canvas coordinates
+      const canvasPos = gridToCanvas(gridX, gridY);
       
       // Safely access port ID
       const portId = section.bottomRow.portIds[i];
@@ -80,8 +94,10 @@ function generatePortsFromRoom(room) {
         
         const groupInfo = findGroupForPort(section.bottomRow.groupLabels, i);
         ports.push({
-          x: x,
-          y: yOffset + rowSpacing,
+          x: canvasPos.x,
+          y: canvasPos.y,
+          gridX: gridX,
+          gridY: gridY,
           id: portId.trim(),
           channelNumber: channelNumber,
           groupLabel: groupInfo.label,
@@ -93,13 +109,14 @@ function generatePortsFromRoom(room) {
     }
     
     // Move down for the next section
-    yOffset += rowSpacing * 2 + sectionSpacing;
+    gridYOffset += rowSpacing * 2 + sectionSpacing;
   });
   
   console.log(`Generated ${ports.length} ports`);
   
-  // Calculate required canvas height based on the number of sections
-  const requiredHeight = yOffset + margin;
+  // Calculate required canvas height based on the grid bounds
+  const gridCanvasPos = gridToCanvas(0, gridYOffset + gridBounds.padding.bottom);
+  const requiredHeight = gridCanvasPos.y;
   if (requiredHeight > updatedCanvasHeight) {
     updatedCanvasHeight = requiredHeight;
   }

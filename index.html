@@ -183,7 +183,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            padding: 32px 40px;
+            padding: 32px 20px 32px 40px; /* Reduced right padding from 40px to 20px */
             margin-bottom: 48px;
             position: relative;
             z-index: 2; /* Ensure room selector is above main content */
@@ -205,6 +205,7 @@
             gap: 16px;
             position: relative;
             z-index: 3; /* Ensure grid container is properly layered */
+            margin-right: -40px; /* Extend grid further into padding area to prevent cutoff */
         }
 
         .room-card {
@@ -352,7 +353,11 @@
             }
             
             .room-selector {
-                padding: 24px;
+                padding: 24px 16px 24px 24px; /* Maintain reduced right padding on mobile */
+            }
+            
+            .room-grid {
+                margin-right: -32px; /* Increase margin for mobile to prevent cutoff */
             }
             
             .patch-bay-section {

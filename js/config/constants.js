@@ -41,7 +41,7 @@ export const LAYERS = {
 // Port and spacing dimensions
 export const portRadius = scaled(9); // Scaled for 1920x1080 resolution
 export const safeZoneRadius = scaled(portRadius * 1.5); // Match the highlight and selection radius
-export const margin = scaled(80); // Scaled for 1920x1080 resolution
+export const margin = scaled(12); // Set to match roomBoxTopPadding so outer box edges touch canvas edges
 export const portSpacing = scaled(32); // Scaled for 1920x1080 resolution
 export const rowSpacing = scaled(74); // Scaled for 1920x1080 resolution
 export const sectionSpacing = scaled(111); // Scaled for 1920x1080 resolution
@@ -49,7 +49,7 @@ export const midGapWidth = scaled(32); // width of gap between columns 24 and 25
 
 // Canvas dimensions
 export const canvasWidth = scaled(1920); // Updated to 1920x1080 (Full HD) resolution
-export const canvasHeight = scaled(1080); // Updated to 1920x1080 (Full HD) resolution
+export const canvasHeight = scaled(950); // Reduced to better fit grid content
 
 // Cable appearance
 export const cableStrokeWeight = scaled(6); // Scaled for 1920x1080 resolution
@@ -94,6 +94,67 @@ export const textShadowOpacity = 1.0; // Opacity of text shadow (0.0 to 1.0)
 // Font settings
 export const fontFamily = 'Montserrat'; // Main font for the application
 
+// Grid positioning system
+// Grid origin point - serves as the anchor for all relative positioning
+export const gridOrigin = {
+  x: scaled(50),  // Default grid X position on canvas
+  y: scaled(50)   // Default grid Y position on canvas
+};
+
+// Grid logical dimensions (relative to grid origin)
+export const gridBounds = {
+  width: scaled(1600),   // Internal grid width
+  height: scaled(800),   // Internal grid height
+  padding: {
+    top: scaled(49),     // Top padding (matches horizontal)
+    right: scaled(49),   // Right padding
+    bottom: scaled(49),  // Bottom padding (matches horizontal)
+    left: scaled(0)      // Left padding (aligned with canvas edge)
+  }
+};
+
+/**
+ * Converts grid-relative coordinates to absolute canvas coordinates
+ * @param {number} gridX - X coordinate relative to grid origin
+ * @param {number} gridY - Y coordinate relative to grid origin
+ * @param {Object} origin - Grid origin point (optional, defaults to gridOrigin)
+ * @returns {Object} - Object with x, y canvas coordinates
+ */
+export function gridToCanvas(gridX, gridY, origin = gridOrigin) {
+  return {
+    x: origin.x + gridX,
+    y: origin.y + gridY
+  };
+}
+
+/**
+ * Converts absolute canvas coordinates to grid-relative coordinates
+ * @param {number} canvasX - X coordinate on canvas
+ * @param {number} canvasY - Y coordinate on canvas
+ * @param {Object} origin - Grid origin point (optional, defaults to gridOrigin)
+ * @returns {Object} - Object with x, y grid coordinates
+ */
+export function canvasToGrid(canvasX, canvasY, origin = gridOrigin) {
+  return {
+    x: canvasX - origin.x,
+    y: canvasY - origin.y
+  };
+}
+
+/**
+ * Gets the absolute canvas bounds of the grid including padding
+ * @param {Object} origin - Grid origin point (optional, defaults to gridOrigin)
+ * @returns {Object} - Object with minX, minY, maxX, maxY canvas coordinates
+ */
+export function getGridCanvasBounds(origin = gridOrigin) {
+  return {
+    minX: origin.x - gridBounds.padding.left,
+    minY: origin.y - gridBounds.padding.top,
+    maxX: origin.x + gridBounds.width + gridBounds.padding.right,
+    maxY: origin.y + gridBounds.height + gridBounds.padding.bottom
+  };
+}
+
 // Cable colors
 export const cableColors = [
   [100, 200, 255], // blue
@@ -110,5 +171,5 @@ export const roomBoxStrokeWeight = scaled(2); // Slightly thicker than group box
 export const roomBoxPadding = scaled(49); // Scaled for 1920x1080 resolution
 export const roomBoxTopPadding = scaled(12); // Scaled for 1920x1080 resolution
 export const roomBoxBottomPadding = scaled(49); // Scaled for 1920x1080 resolution
-export const roomBoxLeftPadding = scaled(49); // Scaled for 1920x1080 resolution
+export const roomBoxLeftPadding = scaled(0); // No left padding so outer box edge touches canvas edge
 export const roomBoxRightPadding = scaled(49); // Scaled for 1920x1080 resolution

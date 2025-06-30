@@ -35,7 +35,7 @@ import {
   LAYERS
 } from '../config/constants.js';
 
-// Import room box constants separately to avoid potential naming conflicts
+// Import room box constants and grid system
 import {
   roomBoxColor,
   roomBoxStrokeWeight,
@@ -43,7 +43,8 @@ import {
   roomBoxTopPadding,
   roomBoxBottomPadding,
   roomBoxLeftPadding,
-  roomBoxRightPadding
+  roomBoxRightPadding,
+  getGridCanvasBounds
 } from '../config/constants.js';
 
 // Import port utilities
@@ -903,73 +904,18 @@ function drawRoomBox(p5, state) {
   const ctx = getGroupBoxContext();
   if (!ctx) return;
   
-  if (!state.ports || state.ports.length === 0 || !state.currentRoom) {
+  if (!state.currentRoom) {
     return;
   }
   
-  // Find the bounds of all ports
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+  // Use the grid bounds system for consistent positioning
+  const bounds = getGridCanvasBounds();
   
-  // Calculate the bounds based on all ports
-  state.ports.forEach(port => {
-    minX = Math.min(minX, port.x);
-    minY = Math.min(minY, port.y);
-    maxX = Math.max(maxX, port.x);
-    maxY = Math.max(maxY, port.y);
-  });
-  
-  // Extend top to include room name
-  const roomNameY = margin; // Updated to match the new title position
-  minY = Math.min(minY, roomNameY);
-  
-  // Extend bottom to include group boxes
-  // Find the lowest group box
-  const portsBySection = {};
-  
-  // Group ports by section and row to find group boxes
-  state.ports.forEach(port => {
-    if (!port || typeof port.section === 'undefined' || !port.row) {
-      return;
-    }
-    
-    if (!portsBySection[port.section]) {
-      portsBySection[port.section] = { top: [], bottom: [] };
-    }
-    
-    portsBySection[port.section][port.row].push(port);
-  });
-  
-  // Check bottom row group boxes to find the lowest point
-  Object.keys(portsBySection).forEach(sectionIndex => {
-    const section = portsBySection[sectionIndex];
-    
-    if (section.bottom && section.bottom.length > 0) {
-      // Find ports with group labels
-      const portsWithLabels = section.bottom.filter(port => port.groupLabel);
-      
-      if (portsWithLabels.length > 0) {
-        // The bottom of a group box is: port.y + bottomLabelPadding + groupBoxVerticalPadding
-        const lowestPort = portsWithLabels[0]; // Any port will do as they're all at the same y-coordinate
-        const groupBoxBottom = lowestPort.y + bottomLabelPadding + groupBoxVerticalPadding;
-        maxY = Math.max(maxY, groupBoxBottom);
-      }
-    }
-  });
-  
-  // Add padding around the bounds using the new configurable padding constants
-  minX -= roomBoxLeftPadding;
-  minY -= roomBoxTopPadding;
-  maxX += roomBoxRightPadding;
-  maxY += roomBoxBottomPadding;
-  
-  // Draw the room box
+  // Draw the room box using grid bounds
   ctx.strokeStyle = `rgb(${roomBoxColor[0]}, ${roomBoxColor[1]}, ${roomBoxColor[2]})`;
   ctx.lineWidth = roomBoxStrokeWeight;
   ctx.beginPath();
-  ctx.rect(minX, minY, maxX - minX, maxY - minY);
+  ctx.rect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
   ctx.stroke();
 }
 
