@@ -49,6 +49,10 @@ export const midGapWidth = scaled(32); // width of gap between columns 24 and 25
 export const canvasWidth = scaled(1920); // Updated to 1920x1080 (Full HD) resolution
 export const canvasHeight = scaled(950); // Reduced to better fit grid content
 
+// Container dimensions - driven by canvas dimensions
+export const containerWidth = canvasWidth;   // 1536px
+export const containerHeight = canvasHeight; // 760px
+
 // Cable appearance
 export const cableStrokeWeight = scaled(6); // Scaled for 1920x1080 resolution
 export const cableHoverThreshold = scaled(20); // Scaled for 1920x1080 resolution

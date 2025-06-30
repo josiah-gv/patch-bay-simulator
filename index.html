@@ -285,8 +285,8 @@
 
         #canvas-container {
             position: relative;
-            width: 1229px; /* Fixed width: 1536 * 0.8 */
-            height: 608px; /* Fixed height: 760 * 0.8 */
+            width: var(--container-width);
+            height: var(--container-height);
             margin: 0 auto;
             overflow: hidden;
         }
@@ -311,6 +311,8 @@
 
         :root {
             --scale-factor: 0.8;
+            --container-width: 1536px;  /* Will be set by JavaScript */
+            --container-height: 760px;  /* Will be set by JavaScript */
         }
         
         /* Responsive media queries removed - using fixed scale with manual zoom controls */

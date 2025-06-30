@@ -10,6 +10,8 @@
 import {
   canvasWidth,
   canvasHeight,
+  containerWidth,
+  containerHeight,
   pageBackgroundColor,
   cableColors,
   fontFamily
@@ -69,6 +71,10 @@ const appState = {
  */
 window.setup = function() {
   try {
+    // Set CSS custom properties to match canvas dimensions
+    document.documentElement.style.setProperty('--container-width', `${containerWidth}px`);
+    document.documentElement.style.setProperty('--container-height', `${containerHeight}px`);
+    
     // Create a p5.js canvas for handling mouse events and other p5 functionality
     // This canvas will be positioned on top of our layered canvases but with opacity 0
     createCanvas(appState.canvasWidth, appState.canvasHeight);
