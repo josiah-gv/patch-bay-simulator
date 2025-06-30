@@ -914,6 +914,7 @@ function drawRoomBox(p5, state) {
   // Draw the room box using grid bounds
   ctx.strokeStyle = `rgb(${roomBoxColor[0]}, ${roomBoxColor[1]}, ${roomBoxColor[2]})`;
   ctx.lineWidth = roomBoxStrokeWeight;
+  
   ctx.beginPath();
   ctx.rect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
   ctx.stroke();

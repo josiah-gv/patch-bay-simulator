@@ -104,14 +104,22 @@ export const gridOrigin = {
 // Grid logical dimensions (relative to grid origin)
 export const gridBounds = {
   width: scaled(1600),   // Internal grid width
-  height: scaled(800),   // Internal grid height
+  height: scaled(100),   // Default height - will be overridden dynamically
   padding: {
-    top: scaled(49),     // Top padding (matches horizontal)
-    right: scaled(49),   // Right padding
-    bottom: scaled(49),  // Bottom padding (matches horizontal)
+    top: scaled(50),     // Top padding (matches horizontal)
+    right: scaled(50),   // Right padding
+    bottom: scaled(-40),  // Bottom padding (matches horizontal)
     left: scaled(0)      // Left padding (aligned with canvas edge)
   }
 };
+
+/**
+ * Updates the grid bounds height dynamically based on content
+ * @param {number} newHeight - The new height for the grid bounds
+ */
+export function updateGridBounds(newHeight) {
+  gridBounds.height = newHeight;
+}
 
 /**
  * Converts grid-relative coordinates to absolute canvas coordinates

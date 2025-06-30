@@ -14,7 +14,8 @@ import {
   canvasHeight,
   gridOrigin,
   gridBounds,
-  gridToCanvas
+  gridToCanvas,
+  updateGridBounds
 } from '../config/constants.js';
 
 // Import utility functions
@@ -112,9 +113,17 @@ function generatePortsFromRoom(room) {
     gridYOffset += rowSpacing * 2 + sectionSpacing;
   });
   
+  // Calculate the required grid height directly from content position
+  const requiredGridHeight = gridYOffset + gridBounds.padding.bottom; // Content end + bottom padding
+  
+  // Update the grid bounds with the calculated height
+  updateGridBounds(requiredGridHeight);
+  
+  console.log(`Updated grid height to ${requiredGridHeight} for ${room.sections.length} sections`);
+  
   console.log(`Generated ${ports.length} ports`);
   
-  // Calculate required canvas height based on the grid bounds
+  // Calculate required canvas height based on the updated grid bounds
   const gridCanvasPos = gridToCanvas(0, gridYOffset + gridBounds.padding.bottom);
   const requiredHeight = gridCanvasPos.y;
   if (requiredHeight > updatedCanvasHeight) {
