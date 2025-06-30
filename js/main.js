@@ -284,3 +284,35 @@ window.mouseMoved = function() {
 window.keyPressed = function() {
   keyPressed(window, appState);
 };
+
+/**
+ * Handle window resize events
+ * Adjusts the scale factor based on window size
+ */
+window.addEventListener('resize', function() {
+  if (!appState || !areLayersInitialized()) return;
+  
+  // Get the container width
+  const container = document.getElementById('canvas-container');
+  if (!container) return;
+  
+  const containerRect = container.getBoundingClientRect();
+  const containerWidth = containerRect.width;
+  
+  // Calculate new scale factor based on container width vs original design width
+  const newScaleFactor = containerWidth / 1920;
+  
+  // Update CSS variable for scale factor
+  document.documentElement.style.setProperty('--scale-factor', newScaleFactor);
+  
+  // Only trigger full resize if the change is significant
+  if (Math.abs(newScaleFactor - (window.lastScaleFactor || 0)) > 0.05) {
+    window.lastScaleFactor = newScaleFactor;
+    
+    // Mark all layers as dirty to trigger redraw
+    markAllLayersAsDirty();
+  }
+});
+
+// Trigger initial resize
+window.dispatchEvent(new Event('resize'));

@@ -4,17 +4,20 @@
 
 /**
  * Global scale factor for room sizing
- * Adjust this single value to scale the entire room up or down
- * 1.0 = original size, 1.5 = 150% size, 0.8 = 80% size
+ * Now reads from CSS variable to allow dynamic updates
  */
-export const SCALE_FACTOR = .8;
+export const SCALE_FACTOR = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 0.8;
 
 /**
  * Helper function to apply scaling to any dimension
  * @param {number} value - The original value to scale
  * @returns {number} - The scaled value, rounded to nearest integer
  */
-export const scaled = (value) => Math.round(value * SCALE_FACTOR);
+export const scaled = (value) => {
+  // Get current scale factor from CSS variable (fallback to 0.8)
+  const currentScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 0.8;
+  return Math.round(value * currentScale);
+};
 
 // Layer IDs for multi-canvas setup
 export const layerIds = [

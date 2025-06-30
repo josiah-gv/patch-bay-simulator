@@ -16,7 +16,7 @@
             background: #0d0d0f;
             color: #ffffff;
             line-height: 1.6;
-            overflow-x: auto;
+            overflow-x: hidden; /* Changed from auto to hidden */
         }
 
         .header {
@@ -39,6 +39,7 @@
         .container {
             display: flex;
             min-height: calc(100vh - 80px);
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
 
         .sidebar {
@@ -47,6 +48,13 @@
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             padding: 40px 32px;
             flex-shrink: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            min-width: 0; /* Allow content to shrink below its natural width */
+            background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
         }
 
         .sidebar-section {
@@ -116,7 +124,7 @@
 
         .room-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 16px;
         }
 
@@ -183,6 +191,8 @@
             padding: 40px;
             backdrop-filter: blur(20px);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .patch-bay-section:hover {
@@ -192,11 +202,11 @@
 
         #canvas-container {
             position: relative;
-            width: calc(1920px * 0.8);
-            height: calc(1080px * 0.8);
-            min-width: calc(1920px * 0.8);
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
             margin: 0 auto;
-            overflow: visible;
+            overflow: hidden; /* Changed from visible to hidden */
         }
 
         canvas {
@@ -219,6 +229,43 @@
 
         :root {
             --scale-factor: 0.8;
+        }
+        
+        /* Media queries for responsive design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+                padding: 30px 24px;
+            }
+            
+            .main-content {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                padding: 24px 20px;
+            }
+            
+            .main-content {
+                padding: 24px;
+            }
+            
+            .room-selector {
+                padding: 24px;
+            }
+            
+            .patch-bay-section {
+                padding: 24px;
+            }
         }
     </style>
 </head>
