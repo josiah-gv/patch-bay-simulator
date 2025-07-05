@@ -125,13 +125,13 @@
         }
 
         .main-content {
-            width: 1400px; /* Fixed width instead of flexible */
+            width: 1500px; /* Updated to 1500px */
             padding: 40px;
-            min-width: 0; /* Allow content to shrink below its natural width */
+            min-width: 0;
             background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
             transition: margin-left 0.3s ease-in-out;
             position: relative;
-            z-index: 1; /* Ensure main content is above sidebar when collapsed */
+            z-index: 1;
         }
 
         .sidebar-section {
@@ -183,11 +183,11 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
-            padding: 32px 20px 32px 40px; /* Reduced right padding from 40px to 20px */
+            padding: 32px 20px 32px 40px;
             margin-bottom: 48px;
             position: relative;
-            z-index: 2; /* Ensure room selector is above main content */
-            width: 1320px; /* Fixed width to prevent scaling */
+            z-index: 2;
+            width: 1420px; /* Updated to match new main-content width minus padding */
         }
 
         .room-selector h2 {
@@ -273,7 +273,7 @@
             border-radius: 24px;
             padding: 40px;
             backdrop-filter: blur(20px);
-            width: 1320px; /* Fixed width instead of max-width: 100% */
+            width: 1420px; /* Updated to match new main-content width minus padding */
             overflow: hidden;
         }
 
