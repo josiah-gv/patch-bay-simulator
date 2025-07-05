@@ -99,8 +99,8 @@ export const fontFamily = 'Montserrat'; // Main font for the application
 // Grid positioning system
 // Grid origin point - serves as the anchor for all relative positioning
 export const gridOrigin = {
-  x: scaled(50),  // Default grid X position on canvas
-  y: scaled(50)   // Default grid Y position on canvas
+  x: scaled(5),  // Default grid X position on canvas
+  y: scaled(5)   // Default grid Y position on canvas
 };
 
 // Grid logical dimensions (relative to grid origin)
@@ -108,10 +108,10 @@ export const gridBounds = {
   width: scaled(1600),   // Internal grid width
   height: scaled(100),   // Default height - will be overridden dynamically
   padding: {
-    top: scaled(50),     // Top padding (matches horizontal)
+    top: scaled(0),     // Reduced top padding to prevent negative bounds
     right: scaled(50),   // Right padding
-    bottom: scaled(-40),  // Bottom padding (matches horizontal)
-    left: scaled(0)      // Left padding (aligned with canvas edge)
+    bottom: scaled(-35),  // Bottom padding
+    left: scaled(0)     // Left padding
   }
 };
 
@@ -158,8 +158,8 @@ export function canvasToGrid(canvasX, canvasY, origin = gridOrigin) {
  */
 export function getGridCanvasBounds(origin = gridOrigin) {
   return {
-    minX: origin.x - gridBounds.padding.left,
-    minY: origin.y - gridBounds.padding.top,
+    minX: origin.x + gridBounds.padding.left,
+    minY: origin.y + gridBounds.padding.top,
     maxX: origin.x + gridBounds.width + gridBounds.padding.right,
     maxY: origin.y + gridBounds.height + gridBounds.padding.bottom
   };

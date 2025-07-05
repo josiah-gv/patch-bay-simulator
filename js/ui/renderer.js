@@ -582,7 +582,9 @@ function drawText(p5, state) {
     const portLayoutStartX = gridBounds.padding.left + 40;
     const portLayoutWidth = 24 * portSpacing + midGapWidth + 24 * portSpacing;
     const portLayoutCenterX = gridOrigin.x + portLayoutStartX + (portLayoutWidth / 2);
-    drawTextWithShadowOnContext(ctx, state.currentRoom.name, portLayoutCenterX, margin);
+    // Position room title relative to grid bounds top padding instead of fixed margin
+    const roomTitleY = gridOrigin.y + gridBounds.padding.top + 25; // 50px above the grid content
+    drawTextWithShadowOnContext(ctx, state.currentRoom.name, portLayoutCenterX, roomTitleY);
     
     // Set text properties for labels and numbers
     ctx.font = `${channelNumberTextSize}px ${fontFamily}`;
@@ -731,9 +733,35 @@ function drawText(p5, state) {
         });
       }
     });
+    
+    // Draw grid origin indicator on top of everything else
+    drawGridOriginIndicator(ctx);
   } catch (error) {
     console.error('Error drawing labels and text:', error);
   }
+}
+
+/**
+ * Draws a visual indicator at the grid origin
+ * @param {CanvasRenderingContext2D} ctx - The text layer canvas context
+ */
+function drawGridOriginIndicator(ctx) {
+  // Save current context state
+  ctx.save();
+  
+  // Draw red 1-pixel square at grid origin
+  ctx.fillStyle = 'rgb(255, 0, 0)';
+  ctx.fillRect(gridOrigin.x - 0.5, gridOrigin.y - 0.5, 1, 1);
+  
+  // Draw circle outline around the grid origin
+  ctx.strokeStyle = 'rgb(255, 0, 0)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(gridOrigin.x, gridOrigin.y, 10, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Restore context state
+  ctx.restore();
 }
 
 // Combined function that calls both drawing functions

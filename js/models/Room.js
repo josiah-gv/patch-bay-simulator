@@ -34,7 +34,7 @@ function generatePortsFromRoom(room) {
   console.log(`Generating ports for room: ${room.name} with ${room.sections.length} sections`);
   
   // Grid-relative positioning
-  let gridYOffset = gridBounds.padding.top + 60; // Start below room title area
+  let gridYOffset = gridBounds.padding.top + 130; // Start below room title area
   const gridStartX = gridBounds.padding.left + 40; // Left margin within grid
   
   // For each section in the room
