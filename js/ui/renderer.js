@@ -92,7 +92,33 @@ function draw(p5, state) {
     // Reset hover connection
     state.hoverConnection = null;
 
-    if (!state.currentRoom) return;
+    if (!state.currentRoom || !state.roomVisible) {
+      // If no room or room is hidden, just draw background and return
+      if (isLayerDirty(LAYERS.BACKGROUND)) {
+        clearBackgroundLayer();
+        drawBackground(p5, state);
+        markLayerAsClean(LAYERS.BACKGROUND);
+      }
+      
+      // Clear other layers when room is hidden
+      if (isLayerDirty(LAYERS.GROUP_BOX)) {
+        clearGroupBoxLayer();
+        markLayerAsClean(LAYERS.GROUP_BOX);
+      }
+      if (isLayerDirty(LAYERS.CABLE)) {
+        clearCableLayer();
+        markLayerAsClean(LAYERS.CABLE);
+      }
+      if (isLayerDirty(LAYERS.PORT)) {
+        clearPortLayer();
+        markLayerAsClean(LAYERS.PORT);
+      }
+      if (isLayerDirty(LAYERS.TEXT)) {
+        clearTextLayer();
+        markLayerAsClean(LAYERS.TEXT);
+      }
+      return;
+    }
 
     const dx = state.cursorX - state.prevCursorX;
     const dy = state.cursorY - state.prevCursorY;

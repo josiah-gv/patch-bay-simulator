@@ -35,6 +35,7 @@ const appState = {
   // Room data
   rooms: [],
   currentRoom: null,
+  roomVisible: true, // Track if room should be displayed
   
   // Port and connection data
   ports: [],
@@ -174,6 +175,42 @@ window.setup = function() {
     console.error('Error in setup function:', error);
   }
 };
+
+/**
+ * Show room function
+ * Displays the current room on the canvas
+ */
+function showRoom() {
+  appState.roomVisible = true;
+  if (appState.currentRoom) {
+    // Generate ports from the current room
+    const { ports, updatedCanvasHeight } = generatePortsFromRoom(appState.currentRoom);
+    appState.ports = ports;
+    
+    // Mark all layers as dirty to trigger redraw
+    markAllLayersAsDirty();
+    console.log('Room displayed');
+  }
+}
+
+/**
+ * Hide room function
+ * Clears the canvas and hides all room elements
+ */
+function hideRoom() {
+  appState.roomVisible = false;
+  appState.ports = [];
+  appState.connections = [];
+  appState.activeCable = null;
+  
+  // Mark all layers as dirty to trigger redraw (which will now show empty canvas)
+  markAllLayersAsDirty();
+  console.log('Room hidden');
+}
+
+// Add event listeners for room show/hide
+window.addEventListener('showRoom', showRoom);
+window.addEventListener('hideRoom', hideRoom);
 
 // Global mouse tracking variables
 let globalMouseX = 0;

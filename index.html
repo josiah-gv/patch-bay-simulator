@@ -201,12 +201,11 @@
         }
 
         .room-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 140px); /* Fixed 5 columns at 140px each */
+            display: flex;
+            justify-content: center;
             gap: 16px;
             position: relative;
             z-index: 3; /* Ensure grid container is properly layered */
-            margin-right: -40px; /* Extend grid further into padding area to prevent cutoff */
         }
 
         .room-card {
@@ -242,6 +241,16 @@
             right: 0;
             height: 2px;
             background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .room-card.inactive {
+            background: rgba(255, 255, 255, 0.01);
+            border-color: rgba(255, 255, 255, 0.03);
+            opacity: 0.6;
+        }
+
+        .room-card.inactive h3 {
+            color: #6b7280;
         }
 
         .room-icon {
@@ -352,34 +361,10 @@
             <div class="room-selector">
                 <h2>Studio Room Selection</h2>
                 <div class="room-grid">
-                    <div class="room-card active">
+                    <div class="room-card active" id="room-toggle">
                         <span class="room-icon">🎛️</span>
                         <h3>Server Room</h3>
-                        <p>Main patch bay</p>
-                    </div>
-                    
-                    <div class="room-card">
-                        <span class="room-icon">🎤</span>
-                        <h3>Vocal Booth</h3>
-                        <p>Isolated recording</p>
-                    </div>
-                    
-                    <div class="room-card">
-                        <span class="room-icon">🎵</span>
-                        <h3>Live Room</h3>
-                        <p>Full band setup</p>
-                    </div>
-                    
-                    <div class="room-card">
-                        <span class="room-icon">🎧</span>
-                        <h3>Control Room</h3>
-                        <p>Mixing & mastering</p>
-                    </div>
-                    
-                    <div class="room-card">
-                        <span class="room-icon">📻</span>
-                        <h3>Broadcast</h3>
-                        <p>Radio & podcasts</p>
+                        <p>Toggle room display</p>
                     </div>
                 </div>
             </div>
@@ -397,14 +382,23 @@
     </div>
 
     <script>
-        // Add interactivity to room cards
-        document.querySelectorAll('.room-card').forEach(card => {
-            card.addEventListener('click', function() {
-                // Remove active class from all cards
-                document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
-                // Add active class to clicked card
+        // Room toggle functionality
+        let roomVisible = true; // Track room visibility state
+        
+        document.getElementById('room-toggle').addEventListener('click', function() {
+            roomVisible = !roomVisible;
+            
+            if (roomVisible) {
+                this.classList.remove('inactive');
                 this.classList.add('active');
-            });
+                // Show the room by triggering a room load event
+                window.dispatchEvent(new CustomEvent('showRoom'));
+            } else {
+                this.classList.remove('active');
+                this.classList.add('inactive');
+                // Hide the room by triggering a room hide event
+                window.dispatchEvent(new CustomEvent('hideRoom'));
+            }
         });
         
         // Sidebar toggle functionality
