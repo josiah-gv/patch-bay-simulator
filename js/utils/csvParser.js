@@ -7,47 +7,99 @@
 async function loadRooms() {
   return new Promise(async (resolve, reject) => {
     try {
-      // For simplicity, we'll directly load the known CSV file
-      const csvFile = '1863 Server Room.csv';
-      const roomName = csvFile.replace('.csv', '');
-      console.log(`Attempting to load room: ${roomName}`);
+      // Get list of CSV files from the rooms directory
+      const csvFiles = await discoverCSVFiles();
+      console.log(`Found ${csvFiles.length} CSV files:`, csvFiles);
       
-      try {
-        const csvResponse = await fetch(`rooms/${csvFile}`);
-        if (!csvResponse.ok) {
-          throw new Error(`Failed to load room: ${csvResponse.status} ${csvResponse.statusText}`);
+      if (csvFiles.length === 0) {
+        console.warn('No CSV files found in rooms folder, using fallback');
+        resolve(createFallbackRoom());
+        return;
+      }
+      
+      const rooms = [];
+      
+      // Load each CSV file
+      for (const csvFile of csvFiles) {
+        const roomName = csvFile.replace('.csv', '');
+        console.log(`Attempting to load room: ${roomName}`);
+        
+        try {
+          const csvResponse = await fetch(`rooms/${csvFile}`);
+          if (!csvResponse.ok) {
+            console.error(`Failed to load room ${roomName}: ${csvResponse.status} ${csvResponse.statusText}`);
+            continue; // Skip this file and continue with others
+          }
+          
+          const csvText = await csvResponse.text();
+          console.log(`Loaded CSV file for ${roomName}, length: ${csvText.length} characters`);
+          
+          if (csvText.trim() === '') {
+            console.error(`CSV file ${csvFile} is empty`);
+            continue; // Skip empty files
+          }
+          
+          // Parse the CSV data
+          const room = parseRoomCSV(csvText, roomName);
+          
+          if (!room || !room.sections || room.sections.length === 0) {
+            console.error(`Failed to parse room data properly for ${roomName}`);
+            continue; // Skip files that don't parse correctly
+          }
+          
+          rooms.push(room);
+          console.log('Room loaded successfully:', roomName);
+          console.log('Sections:', room.sections.length);
+        } catch (error) {
+          console.error(`Error loading room ${roomName}:`, error);
+          // Continue with other files even if one fails
         }
-        
-        const csvText = await csvResponse.text();
-        console.log(`Loaded CSV file for ${roomName}, length: ${csvText.length} characters`);
-        
-        if (csvText.trim() === '') {
-          throw new Error('CSV file is empty');
-        }
-        
-        // Parse the CSV data
-        const room = parseRoomCSV(csvText, roomName);
-        
-        if (!room || !room.sections || room.sections.length === 0) {
-          throw new Error('Failed to parse room data properly');
-        }
-        
-        const rooms = []; // Create a new array instead of modifying a global
-        rooms.push(room);
-        
-        console.log('Room loaded successfully:', roomName);
-        console.log('Sections:', room.sections.length);
-        
+      }
+      
+      if (rooms.length === 0) {
+        console.warn('No rooms loaded successfully, using fallback');
+        resolve(createFallbackRoom());
+      } else {
+        console.log(`Successfully loaded ${rooms.length} rooms`);
         resolve(rooms);
-      } catch (error) {
-        console.error(`Error loading room ${roomName}:`, error);
-        reject(error);
       }
     } catch (error) {
       console.error('Error in loadRooms function:', error);
       reject(error);
     }
   });
+}
+
+// Function to discover CSV files in the rooms folder
+async function discoverCSVFiles() {
+  try {
+    // Since we can't directly list directory contents from the browser,
+    // we'll try to load known files and also attempt common patterns
+    const knownFiles = [
+      '1863 Server Room.csv',
+      'Dry Foley.csv'
+    ];
+    
+    const existingFiles = [];
+    
+    // Test each known file to see if it exists
+    for (const file of knownFiles) {
+      try {
+        const response = await fetch(`rooms/${file}`, { method: 'HEAD' });
+        if (response.ok) {
+          existingFiles.push(file);
+        }
+      } catch (error) {
+        // File doesn't exist, skip it
+        console.log(`File ${file} not found, skipping`);
+      }
+    }
+    
+    return existingFiles;
+  } catch (error) {
+    console.error('Error discovering CSV files:', error);
+    return [];
+  }
 }
 
 // Function to create a fallback room if loading fails

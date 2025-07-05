@@ -92,15 +92,18 @@ function draw(p5, state) {
     // Reset hover connection
     state.hoverConnection = null;
 
-    if (!state.currentRoom || !state.roomVisible) {
-      // If no room or room is hidden, just draw background and return
+    // Check if any rooms are visible
+    const hasVisibleRooms = state.roomStates && Object.values(state.roomStates).some(roomState => roomState.visible);
+    
+    if (!hasVisibleRooms) {
+      // If no rooms are visible, just draw background and return
       if (isLayerDirty(LAYERS.BACKGROUND)) {
         clearBackgroundLayer();
         drawBackground(p5, state);
         markLayerAsClean(LAYERS.BACKGROUND);
       }
       
-      // Clear other layers when room is hidden
+      // Clear other layers when no rooms are visible
       if (isLayerDirty(LAYERS.GROUP_BOX)) {
         clearGroupBoxLayer();
         markLayerAsClean(LAYERS.GROUP_BOX);
@@ -442,7 +445,9 @@ function drawGroupBoxes(p5, state) {
   const ctx = getGroupBoxContext();
   if (!ctx) return;
   
-  if (!state.currentRoom || !state.currentRoom.name || !state.ports || state.ports.length === 0) {
+  // Check if we have any visible rooms and ports
+  const hasVisibleRooms = state.roomStates && Object.values(state.roomStates).some(roomState => roomState.visible);
+  if (!hasVisibleRooms || !state.ports || state.ports.length === 0) {
     return;
   }
   
@@ -592,12 +597,14 @@ function drawText(p5, state) {
   const ctx = getTextContext();
   if (!ctx) return;
   
-  if (!state.currentRoom || !state.currentRoom.name) {
+  // Check if we have any visible rooms
+  const hasVisibleRooms = state.roomStates && Object.values(state.roomStates).some(roomState => roomState.visible);
+  if (!hasVisibleRooms) {
     return;
   }
   
   try {
-    // Draw room title
+    // Draw room titles for all visible rooms
     ctx.fillStyle = `rgb(${textColor}, ${textColor}, ${textColor})`;
     ctx.font = `bold ${titleTextSize}px ${fontFamily}`;
     ctx.textAlign = 'center';
@@ -608,9 +615,21 @@ function drawText(p5, state) {
     const portLayoutStartX = gridBounds.padding.left + 40;
     const portLayoutWidth = 24 * portSpacing + midGapWidth + 24 * portSpacing;
     const portLayoutCenterX = gridOrigin.x + portLayoutStartX + (portLayoutWidth / 2);
-    // Position room title relative to grid bounds top padding instead of fixed margin
-    const roomTitleY = gridOrigin.y + gridBounds.padding.top + 25; // 50px above the grid content
-    drawTextWithShadowOnContext(ctx, state.currentRoom.name, portLayoutCenterX, roomTitleY);
+    
+    // Draw titles for all visible rooms
+    if (state.roomStates) {
+      Object.entries(state.roomStates).forEach(([roomName, roomState]) => {
+        if (roomState.visible) {
+          // Find the room object from the main rooms array
+          const room = state.rooms ? state.rooms.find(r => r.name === roomName) : null;
+          if (room) {
+            // Position room title relative to the room's Y offset
+            const roomTitleY = gridOrigin.y + roomState.yOffset + gridBounds.padding.top + 25;
+            drawTextWithShadowOnContext(ctx, room.name, portLayoutCenterX, roomTitleY);
+          }
+        }
+      });
+    }
     
     // Set text properties for labels and numbers
     ctx.font = `${channelNumberTextSize}px ${fontFamily}`;
@@ -974,7 +993,9 @@ function drawRoomBox(p5, state) {
   const ctx = getGroupBoxContext();
   if (!ctx) return;
   
-  if (!state.currentRoom) {
+  // Check if we have any visible rooms
+  const hasVisibleRooms = state.roomStates && Object.values(state.roomStates).some(roomState => roomState.visible);
+  if (!hasVisibleRooms) {
     return;
   }
   
