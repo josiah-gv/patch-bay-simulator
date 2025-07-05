@@ -40,10 +40,6 @@ export function initializeLayers() {
       continue;
     }
     
-    // Set canvas dimensions
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    
     // Get and store the 2D context
     const context = canvas.getContext('2d');
     
@@ -59,9 +55,8 @@ export function initializeLayers() {
     canvas.style.height = `${canvasHeight}px`;
     canvasContexts[layerId] = context;
     
-    // Clear the canvas initially with DPI scaling
-    const initialDpr = window.devicePixelRatio || 1;
-    context.clearRect(0, 0, canvasWidth * initialDpr, canvasHeight * initialDpr);
+    // Clear the canvas initially using logical dimensions
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
   }
   
   // Initialize dirty flags for all layers
@@ -134,9 +129,8 @@ export function clearLayer(layerId) {
   const context = getLayerContext(layerId);
   
   if (context) {
-    // Clear the canvas with DPI scaling
-    const dpr = window.devicePixelRatio || 1;
-    context.clearRect(0, 0, canvasWidth * dpr, canvasHeight * dpr);
+    // Clear the canvas using logical dimensions (DPI scaling is already applied)
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
     // Mark the layer as dirty after clearing
     markLayerAsDirty(layerId);
     return true;
@@ -289,8 +283,9 @@ export function resizeAllLayers(width, height) {
     const context = canvasContexts[layerId];
     if (context) {
       // Reset the context with proper DPI scaling
-      context.clearRect(0, 0, width * dpr, height * dpr);
-      context.scale(dpr, dpr);
+      context.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+      context.scale(dpr, dpr); // Apply DPI scaling
+      context.clearRect(0, 0, width, height); // Clear using logical dimensions
       // Mark layer as dirty after resize
       markLayerAsDirty(layerId);
     } else {

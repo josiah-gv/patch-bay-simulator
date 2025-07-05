@@ -374,19 +374,22 @@ window.draw = function() {
       // Calculate mouse position relative to the canvas container using global mouse coordinates
       const adjustedMouseX = globalMouseX - rect.left;
       const adjustedMouseY = globalMouseY - rect.top;
-      // Use appState dimensions for consistent coordinate mapping
-      const rawMouseX = adjustedMouseX * (appState.canvasWidth / rect.width);
-      const rawMouseY = adjustedMouseY * (appState.canvasHeight / rect.height);
-      appState.mouseX = rawMouseX;
-      appState.mouseY = rawMouseY;
+      
+      // Ensure we're within bounds before scaling
+      if (adjustedMouseX >= 0 && adjustedMouseX <= rect.width && 
+          adjustedMouseY >= 0 && adjustedMouseY <= rect.height) {
+        // Fix: Don't scale by canvas dimensions, use direct pixel coordinates
+        // The canvases are already handling DPR scaling internally
+        appState.mouseX = adjustedMouseX;
+        appState.mouseY = adjustedMouseY;
+      }
     } else {
       // Fallback to direct p5.js coordinates if container not found
       appState.mouseX = mouseX;
       appState.mouseY = mouseY;
     }
     
-    // Log mouse coordinates for debugging
-    // console.log('Mouse position:', appState.mouseX, appState.mouseY);
+    // Remove excessive logging that was causing performance issues
     
     // Make sure layers are initialized before drawing
     if (areLayersInitialized()) {
@@ -411,15 +414,15 @@ window.mousePressed = function() {
   if (canvasContainer) {
     const rect = canvasContainer.getBoundingClientRect();
     // Calculate mouse position relative to the canvas container using global coordinates
-    const rawMouseX = (globalMouseX - rect.left) * (appState.canvasWidth / rect.width);
-    const rawMouseY = (globalMouseY - rect.top) * (appState.canvasHeight / rect.height);
+    const adjustedMouseX = globalMouseX - rect.left;
+    const adjustedMouseY = globalMouseY - rect.top;
     
-    // Only process mouse events if they occur within the canvas bounds
-    if (rawMouseX >= 0 && rawMouseX < appState.canvasWidth && 
-        rawMouseY >= 0 && rawMouseY < appState.canvasHeight) {
-      // Update mouse position in the state before processing the event
-      appState.mouseX = rawMouseX;
-      appState.mouseY = rawMouseY;
+    // Only process mouse events if they occur within the canvas container bounds
+    if (adjustedMouseX >= 0 && adjustedMouseX <= rect.width && 
+        adjustedMouseY >= 0 && adjustedMouseY <= rect.height) {
+      // Fix: Use direct pixel coordinates, same as in draw function
+      appState.mouseX = adjustedMouseX;
+      appState.mouseY = adjustedMouseY;
       mousePressed(window, appState);
     }
   }
@@ -436,12 +439,12 @@ window.mouseMoved = function() {
   if (canvasContainer) {
     const rect = canvasContainer.getBoundingClientRect();
     // Calculate mouse position relative to the canvas container using global coordinates
-    // Update mouse position in the state regardless of whether it's in bounds
-    // This allows for smoother transitions when moving in and out of the canvas
-    const rawMouseX = (globalMouseX - rect.left) * (appState.canvasWidth / rect.width);
-    const rawMouseY = (globalMouseY - rect.top) * (appState.canvasHeight / rect.height);
-    appState.mouseX = rawMouseX;
-    appState.mouseY = rawMouseY;
+    const adjustedMouseX = globalMouseX - rect.left;
+    const adjustedMouseY = globalMouseY - rect.top;
+    
+    // Fix: Use direct pixel coordinates, same as in draw function
+    appState.mouseX = adjustedMouseX;
+    appState.mouseY = adjustedMouseY;
   } else {
     // Fallback to direct p5.js coordinates if container not found
     appState.mouseX = mouseX;
