@@ -796,7 +796,7 @@ function drawText(p5, state) {
     });
     
     // Draw grid origin indicator on top of everything else
-    drawGridOriginIndicator(ctx);
+   // drawGridOriginIndicator(ctx);
   } catch (error) {
     console.error('Error drawing labels and text:', error);
   }

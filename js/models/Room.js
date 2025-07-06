@@ -128,6 +128,9 @@ function generatePortsFromRoom(room) {
   const requiredGridHeight = gridYOffset + gridBounds.padding.bottom;
   const actualRoomHeight = requiredGridHeight + gridOrigin.y; // Add grid origin offset
   
+  // Fix: Actually update the grid bounds height
+  updateGridBounds(requiredGridHeight);
+  
   return {
     ports,
     updatedCanvasHeight,
