@@ -338,12 +338,25 @@ function updateCombinedPortsAndConnections() {
   appState.ports = [];
   appState.connections = [];
   
+  // Debug: Log which rooms are visible
+  console.log('Room visibility states:');
+  Object.keys(appState.roomStates).forEach(roomName => {
+    const roomState = appState.roomStates[roomName];
+    console.log(`  ${roomName}: visible=${roomState.visible}, ports=${roomState.ports.length}`);
+  });
+  
   Object.values(appState.roomStates).forEach(roomState => {
     if (roomState.visible) {
       appState.ports.push(...roomState.ports);
       appState.connections.push(...roomState.connections);
     }
   });
+  
+  // Debug: Log combined ports info
+  console.log(`Combined ports: ${appState.ports.length} total`);
+  if (appState.ports.length > 0) {
+    console.log(`First few port IDs: ${appState.ports.slice(0, 5).map(p => p.id).join(', ')}`);
+  }
 }
 
 // Add event listeners for room show/hide

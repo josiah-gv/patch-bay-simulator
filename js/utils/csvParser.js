@@ -12,8 +12,8 @@ async function loadRooms() {
       console.log(`Found ${csvFiles.length} CSV files:`, csvFiles);
       
       if (csvFiles.length === 0) {
-        console.warn('No CSV files found in rooms folder, using fallback');
-        resolve(createFallbackRoom());
+        console.error('No CSV files found in rooms folder');
+        resolve([]);
         return;
       }
       
@@ -57,12 +57,12 @@ async function loadRooms() {
       }
       
       if (rooms.length === 0) {
-        console.warn('No rooms loaded successfully, using fallback');
-        resolve(createFallbackRoom());
+        console.error('No rooms loaded successfully');
       } else {
         console.log(`Successfully loaded ${rooms.length} rooms`);
-        resolve(rooms);
       }
+      
+      resolve(rooms);
     } catch (error) {
       console.error('Error in loadRooms function:', error);
       reject(error);
@@ -76,8 +76,8 @@ async function discoverCSVFiles() {
     // Since we can't directly list directory contents from the browser,
     // we'll try to load known files and also attempt common patterns
     const knownFiles = [
-      '1863 Server Room.csv',
-      'Dry Foley.csv'
+      'Dry Foley2.csv',
+      '1863 Server Room.csv'
     ];
     
     const existingFiles = [];
@@ -142,6 +142,12 @@ function parseRoomCSV(csvText, roomName) {
     
     console.log(`Parsed ${lines.length} rows from CSV using Papa Parse`);
     
+    // Debug: Log the actual CSV content
+    console.log('First few lines of parsed CSV:');
+    lines.slice(0, 6).forEach((line, index) => {
+      console.log(`Line ${index}:`, line.slice(0, 10)); // First 10 columns
+    });
+    
     // Check if we have enough rows for at least one section
     if (lines.length < 6) {
       console.error('CSV file does not have enough rows for a complete section');
@@ -171,6 +177,10 @@ function parseRoomCSV(csvText, roomName) {
         const bottomPortIdsRow = lines[i+3] || [];
         const bottomChannelNumbersRow = lines[i+4] || [];
         const bottomGroupLabelsRow = lines[i+5] || [];
+        
+        // Debug: Log the port ID rows specifically
+        console.log(`Top port IDs (row ${i+2}):`, topPortIdsRow.slice(0, 5));
+        console.log(`Bottom port IDs (row ${i+3}):`, bottomPortIdsRow.slice(0, 5));
         
         // Check if this section has any data
         if (topPortIdsRow.length === 0 || (topPortIdsRow.length === 1 && topPortIdsRow[0].trim() === '')) {

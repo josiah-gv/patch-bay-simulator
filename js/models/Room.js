@@ -33,6 +33,12 @@ function generatePortsFromRoom(room) {
   
   console.log(`Generating ports for room: ${room.name} with ${room.sections.length} sections`);
   
+  // Debug: Log the first few port IDs from the parsed room data
+  if (room.sections.length > 0) {
+    console.log('First section top row port IDs:', room.sections[0].topRow.portIds.slice(0, 5));
+    console.log('First section bottom row port IDs:', room.sections[0].bottomRow.portIds.slice(0, 5));
+  }
+  
   // Grid-relative positioning
   let gridYOffset = gridBounds.padding.top + 130; // Start below room title area
   const gridStartX = gridBounds.padding.left + 40; // Left margin within grid
@@ -56,6 +62,11 @@ function generatePortsFromRoom(room) {
       // Safely access port ID
       const portId = section.topRow.portIds[i];
       if (portId && typeof portId === 'string' && portId.trim() !== '') {
+        // Debug: Log the first few port IDs being processed
+        if (sectionIndex === 0 && i < 3) {
+          console.log(`Creating port ${i}: ID=${portId.trim()}`);
+        }
+        
         // Safely access channel number
         const channelNumber = section.topRow.channelNumbers && section.topRow.channelNumbers[i] ? 
                              section.topRow.channelNumbers[i].trim() : '';

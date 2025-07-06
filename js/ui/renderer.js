@@ -306,6 +306,12 @@ function drawPorts(p5, state, closestAvailablePort) {
   const ctx = getPortContext();
   if (!ctx) return;
   
+  // Debug: Log the first 3 port IDs being drawn
+  if (state.ports && state.ports.length > 0) {
+    const first3Ports = state.ports.slice(0, 3);
+    console.log('First 3 ports being drawn:', first3Ports.map(p => p.id));
+  }
+  
   state.ports.forEach(p => {
     // Begin a new path for each port
     ctx.beginPath();
