@@ -125,25 +125,13 @@ function generatePortsFromRoom(room) {
   });
   
   // Calculate the required grid height directly from content position
-  const requiredGridHeight = gridYOffset + gridBounds.padding.bottom; // Content end + bottom padding
-  
-  // Update the grid bounds with the calculated height
-  updateGridBounds(requiredGridHeight);
-  
-  console.log(`Updated grid height to ${requiredGridHeight} for ${room.sections.length} sections`);
-  
-  console.log(`Generated ${ports.length} ports`);
-  
-  // Calculate required canvas height based on the updated grid bounds
-  const gridCanvasPos = gridToCanvas(0, gridYOffset + gridBounds.padding.bottom);
-  const requiredHeight = gridCanvasPos.y;
-  if (requiredHeight > updatedCanvasHeight) {
-    updatedCanvasHeight = requiredHeight;
-  }
+  const requiredGridHeight = gridYOffset + gridBounds.padding.bottom;
+  const actualRoomHeight = requiredGridHeight + gridOrigin.y; // Add grid origin offset
   
   return {
     ports,
-    updatedCanvasHeight
+    updatedCanvasHeight,
+    actualRoomHeight // Add this new property
   };
 }
 

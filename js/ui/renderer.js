@@ -306,11 +306,21 @@ function drawPorts(p5, state, closestAvailablePort) {
   const ctx = getPortContext();
   if (!ctx) return;
   
-  // Debug: Log the first 3 port IDs being drawn
+  // Enhanced debug logging
+  console.log('Drawing ports:', state.ports.length, 'total ports');
+  
+  // Debug: Log the first 3 port coordinates and details
   if (state.ports && state.ports.length > 0) {
     const first3Ports = state.ports.slice(0, 3);
-    console.log('First 3 ports being drawn:', first3Ports.map(p => p.id));
+    console.log('First 3 ports details:');
+    first3Ports.forEach(p => {
+      console.log(`  Port ${p.id}: x=${p.x}, y=${p.y}, room=${p.roomName}`);
+    });
   }
+  
+  // Debug: Log canvas dimensions and port radius
+  console.log(`Canvas context: width=${ctx.canvas.width}, height=${ctx.canvas.height}`);
+  console.log(`Port radius: ${portRadius}`);
   
   state.ports.forEach(p => {
     // Begin a new path for each port

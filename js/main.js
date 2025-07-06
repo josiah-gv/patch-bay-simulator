@@ -303,15 +303,15 @@ function generateRoomToggleButtons(rooms) {
  */
 function calculateCanvasHeight() {
   let totalHeight = 0;
-  const roomSpacing = 100; // Space between rooms
+  const roomSpacing = -200; // Space between rooms
   
   appState.rooms.forEach((room, index) => {
     // Set Y offset for this room
     appState.roomStates[room.name].yOffset = totalHeight;
     
     // Calculate height needed for this room
-    const { updatedCanvasHeight } = generatePortsFromRoom(room);
-    const roomHeight = updatedCanvasHeight;
+    const { updatedCanvasHeight, actualRoomHeight } = generatePortsFromRoom(room);
+    const roomHeight = actualRoomHeight; // Use actual room height instead of full canvas height
     
     totalHeight += roomHeight;
     
