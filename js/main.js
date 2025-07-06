@@ -35,10 +35,11 @@ const appState = {
   // Room data
   rooms: [],
   roomStates: {}, // Track visibility and data for each room
+  activeRoomId: null, // Track the currently active room
   
   // Port and connection data
   ports: [],
-  connections: [],
+  connections: [], // Temporary array for active room's connections
   
   // Active cable state
   activeCable: null,
@@ -128,16 +129,13 @@ window.setup = function() {
         appState.roomStates[room.name] = {
           visible: false,
           ports: [],
-          connections: [],
-          yOffset: 0 // Will be calculated when rooms are positioned
+          connections: [], // Per-room connection storage
+          yOffset: 0 // Will be calculated when rooms are positioned (legacy)
         };
       });
       
       // Generate toggle buttons for all rooms
       generateRoomToggleButtons(rooms);
-      
-      // Calculate total canvas height needed for all rooms
-      calculateCanvasHeight();
       
       // Mark all layers as dirty
       markAllLayersAsDirty();
@@ -152,16 +150,13 @@ window.setup = function() {
         appState.roomStates[room.name] = {
           visible: false,
           ports: [],
-          connections: [],
-          yOffset: 0
+          connections: [], // Per-room connection storage
+          yOffset: 0 // Legacy field
         };
       });
       
       // Generate toggle buttons for fallback rooms
       generateRoomToggleButtons(appState.rooms);
-      
-      // Calculate total canvas height
-      calculateCanvasHeight();
       
       // Mark all layers as dirty
       markAllLayersAsDirty();
@@ -180,52 +175,71 @@ window.setup = function() {
 
 /**
  * Show room function
- * Displays a specific room on the canvas
+ * Displays a specific room on the canvas (single room display)
  */
 function showRoom(event) {
   const roomName = event.detail.roomName;
   const room = appState.rooms.find(r => r.name === roomName);
   
   if (room && appState.roomStates[roomName]) {
+    // Save connections for currently active room before switching
+    if (appState.activeRoomId && appState.activeRoomId !== roomName) {
+      saveConnectionsForRoom(appState.activeRoomId);
+      
+      // Hide the currently active room
+      if (appState.roomStates[appState.activeRoomId]) {
+        appState.roomStates[appState.activeRoomId].visible = false;
+        appState.roomStates[appState.activeRoomId].ports = [];
+      }
+    }
+    
+    // Set new active room
+    appState.activeRoomId = roomName;
     appState.roomStates[roomName].visible = true;
     
-    // Generate ports from the room with proper Y offset
+    // Generate ports from the room at origin (0,0) - no Y offset
     const { ports } = generatePortsFromRoom(room);
-    const yOffset = appState.roomStates[roomName].yOffset;
+    appState.roomStates[roomName].ports = ports;
     
-    // Apply Y offset to all ports
-    const offsetPorts = ports.map(port => ({
-      ...port,
-      y: port.y + yOffset
-    }));
-    
-    appState.roomStates[roomName].ports = offsetPorts;
+    // Load connections for the newly active room
+    loadConnectionsForRoom(roomName);
     
     // Recalculate combined ports and connections
     updateCombinedPortsAndConnections();
     
+    // Resize canvas to fit the active room
+    resizeCanvasToActiveRoom();
+    
     // Mark all layers as dirty to trigger redraw
     markAllLayersAsDirty();
-    console.log(`Room '${roomName}' displayed`);
+    console.log(`Room '${roomName}' displayed as active room`);
   }
 }
 
 /**
  * Hide room function
- * Hides a specific room from the canvas
+ * Hides a specific room from the canvas (single room display)
  */
 function hideRoom(event) {
   const roomName = event.detail.roomName;
   
   if (appState.roomStates[roomName]) {
+    // Save connections before hiding if this is the active room
+    if (appState.activeRoomId === roomName) {
+      saveConnectionsForRoom(roomName);
+      appState.activeRoomId = null;
+    }
+    
     appState.roomStates[roomName].visible = false;
     appState.roomStates[roomName].ports = [];
-    appState.roomStates[roomName].connections = [];
     
     // Clear any active cable if it was from this room
     if (appState.activeCable) {
       appState.activeCable = null;
     }
+    
+    // Clear connections from global state (they're saved in room state)
+    appState.connections = [];
     
     // Recalculate combined ports and connections
     updateCombinedPortsAndConnections();
@@ -273,21 +287,30 @@ function generateRoomToggleButtons(rooms) {
        <p>Toggle room display</p>
      `;
     
-    // Add click event listener
+    // Add click event listener for single room display
     button.addEventListener('click', () => {
       const isActive = button.classList.contains('active');
       
       if (isActive) {
+        // Hide the currently active room
         button.classList.remove('active');
         button.classList.add('inactive');
-        // Dispatch hide room event
         window.dispatchEvent(new CustomEvent('hideRoom', { 
           detail: { roomName: room.name } 
         }));
       } else {
+        // Deactivate all other room buttons first
+        const allRoomButtons = document.querySelectorAll('.room-card');
+        allRoomButtons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.classList.add('inactive');
+        });
+        
+        // Activate this room button
         button.classList.remove('inactive');
         button.classList.add('active');
-        // Dispatch show room event
+        
+        // Show this room (which will automatically hide others)
         window.dispatchEvent(new CustomEvent('showRoom', { 
           detail: { roomName: room.name } 
         }));
@@ -298,70 +321,89 @@ function generateRoomToggleButtons(rooms) {
   });
 }
 
+// Legacy calculateCanvasHeight function removed - no longer needed for single room display
+
 /**
- * Calculate canvas height needed for all rooms
+ * Update combined ports and connections from active room only
  */
-function calculateCanvasHeight() {
-  let totalHeight = 0;
-  const roomSpacing = 0; // Space between rooms
+function updateCombinedPortsAndConnections() {
+  // Clear ports array
+  appState.ports = [];
   
-  appState.rooms.forEach((room, index) => {
-    // Set Y offset for this room
-    appState.roomStates[room.name].yOffset = totalHeight;
-    
-    // Calculate height needed for this room
-    const { updatedCanvasHeight, actualRoomHeight } = generatePortsFromRoom(room);
-    const roomHeight = actualRoomHeight; // Use actual room height instead of full canvas height
-    
-    totalHeight += roomHeight;
-    
-    // Add spacing between rooms (except for the last room)
-    if (index < appState.rooms.length - 1) {
-      totalHeight += roomSpacing;
+  // Only process the active room
+  if (appState.activeRoomId && appState.roomStates[appState.activeRoomId]) {
+    const activeRoomState = appState.roomStates[appState.activeRoomId];
+    if (activeRoomState.visible) {
+      appState.ports.push(...activeRoomState.ports);
     }
-  });
+    
+    // Debug: Log active room info
+    console.log(`Active room '${appState.activeRoomId}': ports=${activeRoomState.ports.length}, connections=${appState.connections.length}`);
+  } else {
+    console.log('No active room set');
+  }
   
-  // Update canvas height if needed
-  if (totalHeight > appState.canvasHeight) {
-    appState.canvasHeight = totalHeight;
-    // Resize both p5 canvas and our layered canvases
-    resizeCanvas(appState.canvasWidth, appState.canvasHeight);
-    resizeAllLayers(appState.canvasWidth, appState.canvasHeight);
+  // Debug: Log combined ports info
+  console.log(`Total ports: ${appState.ports.length}`);
+  if (appState.ports.length > 0) {
+    console.log(`First few port IDs: ${appState.ports.slice(0, 5).map(p => p.id).join(', ')}`);
   }
 }
 
 /**
- * Update combined ports and connections from all visible rooms
+ * Save connections for a specific room
+ * @param {string} roomId - The ID/name of the room to save connections for
  */
-function updateCombinedPortsAndConnections() {
-  // Combine all ports from visible rooms
-  appState.ports = [];
-  appState.connections = [];
-  
-  // Debug: Log which rooms are visible
-  console.log('Room visibility states:');
-  Object.keys(appState.roomStates).forEach(roomName => {
-    const roomState = appState.roomStates[roomName];
-    console.log(`  ${roomName}: visible=${roomState.visible}, ports=${roomState.ports.length}`);
-  });
-  
-  Object.values(appState.roomStates).forEach(roomState => {
-    if (roomState.visible) {
-      appState.ports.push(...roomState.ports);
-      appState.connections.push(...roomState.connections);
+function saveConnectionsForRoom(roomId) {
+  if (roomId && appState.roomStates[roomId]) {
+    appState.roomStates[roomId].connections = [...appState.connections];
+    console.log(`Saved ${appState.connections.length} connections for room '${roomId}'`);
+  }
+}
+
+/**
+ * Load connections for a specific room
+ * @param {string} roomId - The ID/name of the room to load connections from
+ */
+function loadConnectionsForRoom(roomId) {
+  if (roomId && appState.roomStates[roomId]) {
+    appState.connections = [...appState.roomStates[roomId].connections];
+    console.log(`Loaded ${appState.connections.length} connections for room '${roomId}'`);
+  } else {
+    appState.connections = [];
+  }
+}
+
+/**
+ * Resize canvas to fit the active room optimally
+ */
+function resizeCanvasToActiveRoom() {
+  if (appState.activeRoomId && appState.roomStates[appState.activeRoomId]) {
+    const activeRoom = appState.rooms.find(r => r.name === appState.activeRoomId);
+    if (activeRoom) {
+      const { updatedCanvasHeight, actualRoomHeight } = generatePortsFromRoom(activeRoom);
+      const roomWidth = appState.canvasWidth; // Keep original width
+      const roomHeight = actualRoomHeight;
+      
+      // Update canvas dimensions
+      appState.canvasHeight = roomHeight;
+      
+      // Resize both p5 canvas and layered canvases
+      resizeCanvas(roomWidth, roomHeight);
+      resizeAllLayers(roomWidth, roomHeight);
+      
+      console.log(`Canvas resized to ${roomWidth}x${roomHeight} for room '${appState.activeRoomId}'`);
     }
-  });
-  
-  // Debug: Log combined ports info
-  console.log(`Combined ports: ${appState.ports.length} total`);
-  if (appState.ports.length > 0) {
-    console.log(`First few port IDs: ${appState.ports.slice(0, 5).map(p => p.id).join(', ')}`);
   }
 }
 
 // Add event listeners for room show/hide
 window.addEventListener('showRoom', showRoom);
 window.addEventListener('hideRoom', hideRoom);
+
+// Make functions globally accessible
+window.saveConnectionsForRoom = saveConnectionsForRoom;
+window.loadConnectionsForRoom = loadConnectionsForRoom;
 
 // Global mouse tracking variables
 let globalMouseX = 0;

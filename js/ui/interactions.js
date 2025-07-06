@@ -48,6 +48,11 @@ function mousePressed(p5, state) {
           color: cableColor
         });
         
+        // Save connections for the active room
+        if (state.activeRoomId) {
+          saveConnectionsForRoom(state.activeRoomId);
+        }
+        
         // Only cycle to the next cable color if we used a new color (not a picked up cable)
         if (!state.activeCableColor) {
           state.currentColorIndex = (state.currentColorIndex + 1) % state.cableColors.length;
@@ -72,6 +77,11 @@ function mousePressed(p5, state) {
         // Remove the connection from the connections array
         const index = state.connections.indexOf(existingConnection);
         state.connections.splice(index, 1);
+        
+        // Save connections for the active room
+        if (state.activeRoomId) {
+          saveConnectionsForRoom(state.activeRoomId);
+        }
         
         // Determine which end of the cable to pick up
         // If we clicked on the 'from' port, pick up from the 'to' port
@@ -114,6 +124,12 @@ function mousePressed(p5, state) {
       // Check if both ports exist before checking if mouse is near the cable
       if (a && b && isMouseNearBezierSegments(a, b, 0, 0, cableDeleteThreshold, p5, state)) {
         state.connections.splice(i, 1);
+        
+        // Save connections for the active room
+        if (state.activeRoomId) {
+          saveConnectionsForRoom(state.activeRoomId);
+        }
+        
         // Mark cable and port layers as dirty since we removed a connection
         markLayerAsDirty(LAYERS.CABLE);
         markLayerAsDirty(LAYERS.PORT);
@@ -270,6 +286,11 @@ function clearAllPatches(state) {
   // Only mark layers as dirty if there were connections to clear
   if (state.connections.length > 0) {
     state.connections = [];
+    
+    // Save connections for the active room
+    if (state.activeRoomId) {
+      saveConnectionsForRoom(state.activeRoomId);
+    }
     
     // Mark cable and port layers as dirty since we cleared all connections
     markLayerAsDirty(LAYERS.CABLE);

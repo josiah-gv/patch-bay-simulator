@@ -639,8 +639,8 @@ function drawText(p5, state) {
           // Find the room object from the main rooms array
           const room = state.rooms ? state.rooms.find(r => r.name === roomName) : null;
           if (room) {
-            // Position room title relative to the room's Y offset
-            const roomTitleY = gridOrigin.y + roomState.yOffset + gridBounds.padding.top + 25;
+            // Position room title at the top of the active room (no yOffset needed for single room display)
+            const roomTitleY = gridOrigin.y + gridBounds.padding.top + 25;
             drawTextWithShadowOnContext(ctx, room.name, portLayoutCenterX, roomTitleY);
           }
         }
