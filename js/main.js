@@ -20,7 +20,16 @@ import {
 // Import models
 import { generatePortsFromRoom, getRoomTitle } from './models/Room.js';
 import { getPortAt, isPortConnected } from './models/Port.js';
-import { createConnection, drawCable } from './models/Connection.js';
+import { createConnection, drawCable, findConnectionsForRoom, isPortConnectedInRoom } from './models/Connection.js';
+import { 
+  initializeRegistryFromRooms, 
+  registerPort, 
+  setPortSignal, 
+  removePortSignal, 
+  getPortSignalColor,
+  hasPortCrossRoomSignal,
+  clearRegistry
+} from './models/CrossRoomRegistry.js';
 
 // Import UI modules
 import { draw as renderDraw } from './ui/renderer.js';
@@ -40,6 +49,10 @@ const appState = {
   // Port and connection data
   ports: [],
   connections: [], // Temporary array for active room's connections
+  allConnections: [], // Global array for all connections across all rooms
+  
+  // Cross-room signal tracking
+  crossRoomSignals: {}, // Track signals that cross between rooms
   
   // Active cable state
   activeCable: null,
@@ -130,9 +143,16 @@ window.setup = function() {
           visible: false,
           ports: [],
           connections: [], // Per-room connection storage
-          yOffset: 0 // Will be calculated when rooms are positioned (legacy)
+          yOffset: 0, // Will be calculated when rooms are positioned (legacy)
+          crossRoomSignals: {} // Track cross-room signals for this room
         };
       });
+      
+      // Initialize the cross-room port registry
+      initializeRegistryFromRooms(appState.rooms.reduce((acc, room) => {
+        acc[room.name] = room;
+        return acc;
+      }, {}));
       
       // Generate toggle buttons for all rooms
       generateRoomToggleButtons(rooms);
@@ -151,9 +171,16 @@ window.setup = function() {
           visible: false,
           ports: [],
           connections: [], // Per-room connection storage
-          yOffset: 0 // Legacy field
+          yOffset: 0, // Legacy field
+          crossRoomSignals: {} // Track cross-room signals for this room
         };
       });
+      
+      // Initialize the cross-room port registry for fallback rooms
+      initializeRegistryFromRooms(appState.rooms.reduce((acc, room) => {
+        acc[room.name] = room;
+        return acc;
+      }, {}));
       
       // Generate toggle buttons for fallback rooms
       generateRoomToggleButtons(appState.rooms);
@@ -209,6 +236,11 @@ function showRoom(event) {
     // Generate ports from the room at origin (0,0) - no Y offset
     const { ports } = generatePortsFromRoom(room);
     appState.roomStates[roomName].ports = ports;
+    
+    // Register ports in the cross-room registry
+    ports.forEach(port => {
+      registerPort(port.id, roomName);
+    });
     
     // Load connections for the newly active room
     loadConnectionsForRoom(roomName);
@@ -365,7 +397,20 @@ function updateCombinedPortsAndConnections() {
  */
 function saveConnectionsForRoom(roomId) {
   if (roomId && appState.roomStates[roomId]) {
-    appState.roomStates[roomId].connections = [...appState.connections];
+    // Update connections with room context
+    const roomConnections = appState.connections.map(conn => {
+      // Ensure connection has room context
+      if (!conn.roomId) {
+        conn.roomId = roomId;
+      }
+      return conn;
+    });
+    
+    appState.roomStates[roomId].connections = [...roomConnections];
+    
+    // Update global connections array
+    updateGlobalConnections();
+    
     console.log(`Saved ${appState.connections.length} connections for room '${roomId}'`);
   }
 }
@@ -380,6 +425,129 @@ function loadConnectionsForRoom(roomId) {
     console.log(`Loaded ${appState.connections.length} connections for room '${roomId}'`);
   } else {
     appState.connections = [];
+  }
+}
+
+/**
+ * Update the global connections array with all connections from all rooms
+ */
+function updateGlobalConnections() {
+  appState.allConnections = [];
+  
+  Object.keys(appState.roomStates).forEach(roomId => {
+    const roomState = appState.roomStates[roomId];
+    if (roomState && roomState.connections) {
+      appState.allConnections.push(...roomState.connections);
+    }
+  });
+  
+  console.log(`Updated global connections: ${appState.allConnections.length} total connections`);
+}
+
+/**
+ * Add a connection and update cross-room signals
+ * @param {Object} connection - The connection to add
+ */
+function addConnection(connection) {
+  if (!connection || !appState.activeRoomId) return;
+  
+  // Ensure connection has room context
+  connection.roomId = appState.activeRoomId;
+  
+  // Add to current room's connections
+  appState.connections.push(connection);
+  
+  // Update cross-room signals
+  updateCrossRoomSignalsForConnection(connection);
+  
+  // Update global connections
+  updateGlobalConnections();
+}
+
+/**
+ * Remove a connection and update cross-room signals
+ * @param {Object} connection - The connection to remove
+ */
+function removeConnection(connection) {
+  if (!connection || !appState.activeRoomId) return;
+  
+  // Remove from current room's connections
+  const index = appState.connections.indexOf(connection);
+  if (index > -1) {
+    appState.connections.splice(index, 1);
+  }
+  
+  // Clear cross-room signals for this connection
+  clearCrossRoomSignalsForConnection(connection);
+  
+  // Update global connections
+  updateGlobalConnections();
+}
+
+/**
+ * Update cross-room signals when a connection is added
+ * @param {Object} connection - The connection that was added
+ */
+function updateCrossRoomSignalsForConnection(connection) {
+  if (!connection || !connection.roomId) return;
+  
+  const portAId = connection.from || (connection.portA && connection.portA.id);
+  const portBId = connection.to || (connection.portB && connection.portB.id);
+  const color = connection.color;
+  
+  console.log('Updating cross-room signals for connection:', {
+    portAId,
+    portBId,
+    color,
+    roomId: connection.roomId
+  });
+  
+  if (portAId && portBId && color) {
+    // Set signals for both ports
+    setPortSignal(portAId, connection.roomId, color);
+    setPortSignal(portBId, connection.roomId, color);
+    console.log('Cross-room signals set for ports:', portAId, 'and', portBId);
+  } else {
+    console.warn('Missing required data for cross-room signal:', { portAId, portBId, color });
+  }
+}
+
+/**
+ * Clear cross-room signals when a connection is removed
+ * @param {Object} connection - The connection that was removed
+ */
+function clearCrossRoomSignalsForConnection(connection) {
+  if (!connection || !connection.roomId) return;
+  
+  const portAId = connection.from || (connection.portA && connection.portA.id);
+  const portBId = connection.to || (connection.portB && connection.portB.id);
+  
+  if (portAId) {
+    // Check if port still has other connections in this room
+    const hasOtherConnections = appState.connections.some(conn => 
+      conn !== connection && 
+      (conn.from === portAId || conn.to === portAId ||
+       (conn.portA && conn.portA.id === portAId) ||
+       (conn.portB && conn.portB.id === portAId))
+    );
+    
+    if (!hasOtherConnections) {
+      removePortSignal(portAId, connection.roomId);
+    }
+  }
+  
+  if (portBId) {
+    // Check if port still has other connections in this room
+    const hasOtherConnections = appState.connections.some(conn => 
+      conn !== connection && 
+      (conn.from === portBId || conn.to === portBId ||
+       (conn.portA && conn.portA.id === portBId) ||
+       (conn.portB && conn.portB.id === portBId))
+    );
+    
+    if (!hasOtherConnections) {
+      removePortSignal(portBId, connection.roomId);
+    }
   }
 }
 
@@ -413,6 +581,9 @@ window.addEventListener('hideRoom', hideRoom);
 // Make functions globally accessible
 window.saveConnectionsForRoom = saveConnectionsForRoom;
 window.loadConnectionsForRoom = loadConnectionsForRoom;
+window.addConnection = addConnection;
+window.removeConnection = removeConnection;
+window.updateGlobalConnections = updateGlobalConnections;
 
 // Global mouse tracking variables
 let globalMouseX = 0;
@@ -538,23 +709,35 @@ window.reloadRooms = async function() {
     // Clear existing room states
     appState.roomStates = {};
     
+    // Clear cross-room registry
+    clearRegistry();
+    
     // Reinitialize room states
     rooms.forEach(room => {
       appState.roomStates[room.name] = {
         visible: false,
         ports: [],
         connections: [],
-        yOffset: 0
+        yOffset: 0,
+        crossRoomSignals: {}
       };
     });
+    
+    // Initialize the cross-room port registry
+    initializeRegistryFromRooms(rooms.reduce((acc, room) => {
+      acc[room.name] = room;
+      return acc;
+    }, {}));
     
     // Regenerate toggle buttons
     generateRoomToggleButtons(rooms);
     
-    // Clear active room
+    // Clear active room and connections
     appState.activeRoomId = null;
     appState.connections = [];
+    appState.allConnections = [];
     appState.ports = [];
+    appState.crossRoomSignals = {};
     
     // Mark all layers as dirty
     markAllLayersAsDirty();

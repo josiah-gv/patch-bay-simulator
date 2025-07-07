@@ -11,7 +11,10 @@ import { portRadius, cableDeleteThreshold, LAYERS } from '../config/constants.js
 import { getPortAt, isPortConnected } from '../models/Port.js';
 
 // Import connection utilities
-import { findConnectionWithPort } from '../models/Connection.js';
+import { findConnectionWithPort, createConnection } from '../models/Connection.js';
+
+// Import cross-room registry functions
+import { getPortSignalColor, hasPortCrossRoomSignal } from '../models/CrossRoomRegistry.js';
 
 // Import layer manager
 import { getLayerContext, markLayerAsDirty, markAllLayersAsDirty } from './layerManager.js';
@@ -22,6 +25,14 @@ import { getLayerContext, markLayerAsDirty, markAllLayersAsDirty } from './layer
  * @param {Object} state - The application state
  */
 function mousePressed(p5, state) {
+  // Set debug flag for click events
+  state.debugOnClick = true;
+  
+  // Clear the debug flag after a short delay to prevent spam
+  setTimeout(() => {
+    state.debugOnClick = false;
+  }, 100);
+  
   // Get mouse coordinates from the state
   const mouseX = state.mouseX;
   const mouseY = state.mouseY;
@@ -37,20 +48,43 @@ function mousePressed(p5, state) {
       );
 
       if (!isPortConnected) {
-        // Connect the cable
-        // Use the stored cable color if available (from picking up an existing cable)
-        // Otherwise use the current color from the color cycle
+        // Get the cable color we want to use
         const cableColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
         
-        state.connections.push({
-          from: state.activeCable,
-          to: port.id,
-          color: cableColor
-        });
+        // Check if the port has a cross-room signal with a different color
+        const currentRoomId = state.activeRoomId;
+        const crossRoomSignalColor = getPortSignalColor(port.id, currentRoomId);
+        const hasCrossRoomSignal = hasPortCrossRoomSignal(port.id, currentRoomId);
+        
+        // If port has a cross-room signal, enforce color matching
+        if (hasCrossRoomSignal && crossRoomSignalColor) {
+          // Check if the cable color matches the cross-room signal color
+          const colorsMatch = cableColor[0] === crossRoomSignalColor[0] && 
+                             cableColor[1] === crossRoomSignalColor[1] && 
+                             cableColor[2] === crossRoomSignalColor[2];
+          
+          if (!colorsMatch) {
+            // Prevent connection - colors don't match
+            console.log('Cannot connect cable: color mismatch with cross-room signal');
+            return;
+          }
+        }
+        
+        // Connect the cable
+        // Create connection with room context
+        const connection = createConnection(state.activeCable, port.id, cableColor, state.activeRoomId);
+        
+        // Use the new addConnection function to handle cross-room signals
+        if (window.addConnection) {
+          window.addConnection(connection);
+        } else {
+          // Fallback to direct array manipulation
+          state.connections.push(connection);
+        }
         
         // Save connections for the active room
-        if (state.activeRoomId) {
-          saveConnectionsForRoom(state.activeRoomId);
+        if (state.activeRoomId && window.saveConnectionsForRoom) {
+          window.saveConnectionsForRoom(state.activeRoomId);
         }
         
         // Only cycle to the next cable color if we used a new color (not a picked up cable)
@@ -74,13 +108,18 @@ function mousePressed(p5, state) {
 
       if (existingConnection) {
         // If the port is already connected, pick up the cable
-        // Remove the connection from the connections array
-        const index = state.connections.indexOf(existingConnection);
-        state.connections.splice(index, 1);
+        // Use the new removeConnection function to handle cross-room signals
+        if (window.removeConnection) {
+          window.removeConnection(existingConnection);
+        } else {
+          // Fallback to direct array manipulation
+          const index = state.connections.indexOf(existingConnection);
+          state.connections.splice(index, 1);
+        }
         
         // Save connections for the active room
-        if (state.activeRoomId) {
-          saveConnectionsForRoom(state.activeRoomId);
+        if (state.activeRoomId && window.saveConnectionsForRoom) {
+          window.saveConnectionsForRoom(state.activeRoomId);
         }
         
         // Determine which end of the cable to pick up
@@ -101,6 +140,16 @@ function mousePressed(p5, state) {
       } else {
         // Start a new cable from this port
         state.activeCable = port.id;
+        
+        // Check if this port has a cross-room signal and use its color
+        const currentRoomId = state.activeRoomId;
+        const crossRoomSignalColor = getPortSignalColor(port.id, currentRoomId);
+        const hasCrossRoomSignal = hasPortCrossRoomSignal(port.id, currentRoomId);
+        
+        if (hasCrossRoomSignal && crossRoomSignalColor) {
+          // Use the cross-room signal color for the new cable
+          state.activeCableColor = crossRoomSignalColor;
+        }
         
         // Mark cable layer as dirty since we're starting a new cable
         markLayerAsDirty(LAYERS.CABLE);
@@ -123,11 +172,17 @@ function mousePressed(p5, state) {
       
       // Check if both ports exist before checking if mouse is near the cable
       if (a && b && isMouseNearBezierSegments(a, b, 0, 0, cableDeleteThreshold, p5, state)) {
-        state.connections.splice(i, 1);
+        // Use the new removeConnection function to handle cross-room signals
+        if (window.removeConnection) {
+          window.removeConnection(conn);
+        } else {
+          // Fallback to direct array manipulation
+          state.connections.splice(i, 1);
+        }
         
         // Save connections for the active room
-        if (state.activeRoomId) {
-          saveConnectionsForRoom(state.activeRoomId);
+        if (state.activeRoomId && window.saveConnectionsForRoom) {
+          window.saveConnectionsForRoom(state.activeRoomId);
         }
         
         // Mark cable and port layers as dirty since we removed a connection
@@ -285,11 +340,22 @@ function distToSegment(p, a, b) {
 function clearAllPatches(state) {
   // Only mark layers as dirty if there were connections to clear
   if (state.connections.length > 0) {
-    state.connections = [];
+    // Remove all connections using the new removeConnection function
+    const connectionsToRemove = [...state.connections];
+    connectionsToRemove.forEach(conn => {
+      if (window.removeConnection) {
+        window.removeConnection(conn);
+      }
+    });
+    
+    // Fallback: clear the array directly if removeConnection isn't available
+    if (!window.removeConnection) {
+      state.connections = [];
+    }
     
     // Save connections for the active room
-    if (state.activeRoomId) {
-      saveConnectionsForRoom(state.activeRoomId);
+    if (state.activeRoomId && window.saveConnectionsForRoom) {
+      window.saveConnectionsForRoom(state.activeRoomId);
     }
     
     // Mark cable and port layers as dirty since we cleared all connections

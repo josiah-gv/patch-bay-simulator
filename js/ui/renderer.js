@@ -54,6 +54,9 @@ import {
 // Import port utilities
 import { isPortConnected, getPortAt } from '../models/Port.js';
 
+// Import cross-room registry functions
+import { getPortSignalColor, hasPortCrossRoomSignal } from '../models/CrossRoomRegistry.js';
+
 // Import layer manager
 import {
   getBackgroundContext,
@@ -306,47 +309,85 @@ function drawPorts(p5, state, closestAvailablePort) {
   const ctx = getPortContext();
   if (!ctx) return;
   
-  // Enhanced debug logging
-  console.log('Drawing ports:', state.ports.length, 'total ports');
-  
-  // Debug: Log the first 3 port coordinates and details
-  if (state.ports && state.ports.length > 0) {
-    const first3Ports = state.ports.slice(0, 3);
-    console.log('First 3 ports details:');
-    first3Ports.forEach(p => {
-      console.log(`  Port ${p.id}: x=${p.x}, y=${p.y}, room=${p.roomName}`);
-    });
+  // Enhanced debug logging - only on click events
+  if (state.debugOnClick) {
+    // console.log('Drawing ports:', state.ports.length, 'total ports');
+    
+    // Debug: Log the first 3 port coordinates and details
+    // if (state.ports && state.ports.length > 0) {
+    //   const first3Ports = state.ports.slice(0, 3);
+    //   console.log('First 3 ports details:');
+    //   first3Ports.forEach(p => {
+    //     console.log(`  Port ${p.id}: x=${p.x}, y=${p.y}, room=${p.roomName}`);
+    //   });
+    // }
+    
+    // Debug: Log canvas dimensions and port radius
+    // console.log(`Canvas context: width=${ctx.canvas.width}, height=${ctx.canvas.height}`);
+    // console.log(`Port radius: ${portRadius}`);
   }
   
-  // Debug: Log canvas dimensions and port radius
-  console.log(`Canvas context: width=${ctx.canvas.width}, height=${ctx.canvas.height}`);
-  console.log(`Port radius: ${portRadius}`);
-  
   state.ports.forEach(p => {
-    // Begin a new path for each port
+    // Check for cross-room signal first
+    const currentRoomId = state.activeRoomId;
+    const crossRoomSignalColor = getPortSignalColor(p.id, currentRoomId);
+    const hasCrossRoomSignal = hasPortCrossRoomSignal(p.id, currentRoomId);
+    
+    // Debug logging for cross-room signals - only on click events
+    if (p.id === 'p0001' && state.debugOnClick) {
+      console.log('Port p0001 cross-room check:', {
+        currentRoomId,
+        crossRoomSignalColor,
+        hasCrossRoomSignal
+      });
+    }
+    
+    // Draw cross-room signal ring if present
+    if (hasCrossRoomSignal && crossRoomSignalColor) {
+      ctx.beginPath();
+      ctx.strokeStyle = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
+      ctx.lineWidth = 4; // 4-pixel thick ring
+      ctx.arc(p.x, p.y, portRadius + 2, 0, Math.PI * 2); // Ring outside the port circle
+      ctx.stroke();
+    }
+    
+    // Begin a new path for the port circle
     ctx.beginPath();
     
+    // Determine port fill color
+    let portFillColor;
     if (isPortConnected(p, state.connections)) {
       // Find the connection this port belongs to
       const conn = state.connections.find(c => c.from === p.id || c.to === p.id);
       if (conn && conn.color) {
         // Use the cable's color for the port at full brightness
-        ctx.fillStyle = `rgb(${conn.color[0]}, ${conn.color[1]}, ${conn.color[2]})`;
+        portFillColor = `rgb(${conn.color[0]}, ${conn.color[1]}, ${conn.color[2]})`;
       } else {
         // Fallback if no color found
-        ctx.fillStyle = 'rgb(150, 100, 100)';
+        portFillColor = 'rgb(150, 100, 100)';
       }
+    } else if (hasCrossRoomSignal && crossRoomSignalColor) {
+      // If port has cross-room signal but no local connection, use the signal color
+      portFillColor = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
     } else if (state.activeCable !== null && p.id === state.activeCable) {
       // Highlight the active cable source port with the stored cable color at full brightness
       const currentColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
-      ctx.fillStyle = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`;
+      portFillColor = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`;
     } else if (p === closestAvailablePort) {
-      // Highlight the closest available port with the color of the active cable (if any) or next color
-      const nextColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
-      ctx.fillStyle = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
+      // Check if this port already has a cross-room signal color assigned
+      if (hasCrossRoomSignal && crossRoomSignalColor) {
+        // Use the existing cross-room signal color
+        portFillColor = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
+      } else {
+        // Highlight the closest available port with the color of the active cable (if any) or next color
+        const nextColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
+        portFillColor = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
+      }
     } else {
-      ctx.fillStyle = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`; // default gray for unconnected ports
+      portFillColor = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`; // default gray for unconnected ports
     }
+    
+    ctx.fillStyle = portFillColor;
     
     // Draw the port circle
     ctx.arc(p.x, p.y, portRadius, 0, Math.PI * 2);

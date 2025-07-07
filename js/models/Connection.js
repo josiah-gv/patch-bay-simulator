@@ -10,17 +10,38 @@ import { cableSagBase, cableSagFactor, cableHoverThreshold } from '../config/con
 import { dist } from '../models/Port.js';
 
 /**
- * Creates a new connection between two ports
+ * Creates a new connection between two ports with room context
  * @param {Object} portA - The first port
  * @param {Object} portB - The second port
  * @param {Array} color - The color of the connection
+ * @param {string} roomId - The room ID where this connection exists
  * @returns {Object} - The created connection
  */
-function createConnection(portA, portB, color) {
+function createConnection(portA, portB, color, roomId = null) {
+  // Support both legacy format (port IDs) and new format (port objects)
+  const portAId = typeof portA === 'string' ? portA : portA.id;
+  const portBId = typeof portB === 'string' ? portB : portB.id;
+  
   return {
+    // Legacy format for backward compatibility
+    from: portAId,
+    to: portBId,
+    color: color,
+    
+    // New room-scoped format
+    roomId: roomId,
+    portA: {
+      id: portAId,
+      roomId: roomId
+    },
+    portB: {
+      id: portBId,
+      roomId: roomId
+    },
+    
+    // Legacy object references (deprecated but maintained for compatibility)
     a: portA,
-    b: portB,
-    color: color
+    b: portB
   };
 }
 
@@ -136,20 +157,61 @@ function drawCable(p5, a, b, offsetY = 0, offsetX = 0) {
 }
 
 /**
- * Finds a connection that contains the specified port
+ * Finds a connection that contains the specified port within a specific room
  * @param {Object} port - The port to check
  * @param {Array} connections - The array of connections
+ * @param {string} roomId - Optional room ID to scope the search
  * @returns {Object|null} - The connection containing the port, or null if none found
  */
-function findConnectionWithPort(port, connections) {
+function findConnectionWithPort(port, connections, roomId = null) {
   if (!port || !connections || !Array.isArray(connections)) {
     return null;
   }
   
+  const portId = typeof port === 'string' ? port : port.id;
+  
   return connections.find(conn => {
     if (!conn) return false;
-    return (conn.a === port || conn.b === port);
+    
+    // If room ID is specified, only check connections in that room
+    if (roomId && conn.roomId && conn.roomId !== roomId) {
+      return false;
+    }
+    
+    // Check both legacy and new formats
+    return (conn.a === port || conn.b === port || 
+            conn.from === portId || conn.to === portId ||
+            (conn.portA && conn.portA.id === portId) ||
+            (conn.portB && conn.portB.id === portId));
   });
+}
+
+/**
+ * Finds all connections for a specific room
+ * @param {Array} connections - The array of connections
+ * @param {string} roomId - The room ID to filter by
+ * @returns {Array} - Array of connections for the specified room
+ */
+function findConnectionsForRoom(connections, roomId) {
+  if (!connections || !Array.isArray(connections) || !roomId) {
+    return [];
+  }
+  
+  return connections.filter(conn => {
+    if (!conn) return false;
+    return conn.roomId === roomId;
+  });
+}
+
+/**
+ * Checks if a port is connected within a specific room
+ * @param {Object|string} port - The port to check (object or ID)
+ * @param {Array} connections - The array of connections
+ * @param {string} roomId - The room ID to scope the search
+ * @returns {boolean} - True if the port is connected in the specified room
+ */
+function isPortConnectedInRoom(port, connections, roomId) {
+  return findConnectionWithPort(port, connections, roomId) !== null;
 }
 
 // Export the functions
@@ -160,5 +222,7 @@ export {
   bezierPoint,
   lerp,
   drawCable,
-  findConnectionWithPort
+  findConnectionWithPort,
+  findConnectionsForRoom,
+  isPortConnectedInRoom
 };
