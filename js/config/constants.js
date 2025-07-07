@@ -84,6 +84,7 @@ export const textColor = 255; // White text
 export const textShadowColor = 0; // Black for text shadows (used in RGBA format)
 export const channelNumberColor = [200, 200, 200]; // Light grey for channel numbers
 export const defaultPortColor = 100; // Default gray for unconnected ports
+export const deadPortColor = 35; // Darker gray for dead ports (60% of default)
 export const highlightPortColor = [100, 200, 100]; // Green highlight for closest available port
 export const groupBoxColor = [150, 150, 150]; // Brighter grey for better visibility of group boxes
 

@@ -61,30 +61,35 @@ function generatePortsFromRoom(room) {
       
       // Safely access port ID
       const portId = section.topRow.portIds[i];
-      if (portId && typeof portId === 'string' && portId.trim() !== '') {
-        // Debug: Log the first few port IDs being processed
-        if (sectionIndex === 0 && i < 3) {
-          console.log(`Creating port ${i}: ID=${portId.trim()}`);
-        }
-        
-        // Safely access channel number
-        const channelNumber = section.topRow.channelNumbers && section.topRow.channelNumbers[i] ? 
-                             section.topRow.channelNumbers[i].trim() : '';
-        
-        const groupInfo = findGroupForPort(section.topRow.groupLabels, i);
-        ports.push({
-          x: canvasPos.x,
-          y: canvasPos.y,
-          gridX: gridX,
-          gridY: gridYOffset,
-          id: portId.trim(),
-          channelNumber: channelNumber,
-          groupLabel: groupInfo.label,
-          groupInternalId: groupInfo.internalId,
-          row: 'top',
-          section: sectionIndex
-        });
+      const hasValidPortId = portId && typeof portId === 'string' && portId.trim() !== '';
+      
+      // Debug: Log the first few port IDs being processed
+      if (sectionIndex === 0 && i < 3) {
+        console.log(`Creating port ${i}: ID=${hasValidPortId ? portId.trim() : 'null (dead port)'}`);
       }
+      
+      // Safely access channel number
+      const channelNumber = section.topRow.channelNumbers && section.topRow.channelNumbers[i] ? 
+                           section.topRow.channelNumbers[i].trim() : '';
+      
+      const groupInfo = findGroupForPort(section.topRow.groupLabels, i);
+      
+      // Create port object (either live or dead)
+      const port = {
+        x: canvasPos.x,
+        y: canvasPos.y,
+        gridX: gridX,
+        gridY: gridYOffset,
+        id: hasValidPortId ? portId.trim() : 'null',
+        channelNumber: channelNumber,
+        groupLabel: groupInfo.label,
+        groupInternalId: groupInfo.internalId,
+        row: 'top',
+        section: sectionIndex,
+        isDead: !hasValidPortId
+      };
+      
+      ports.push(port);
     }
     
     // Generate bottom row ports
@@ -99,25 +104,30 @@ function generatePortsFromRoom(room) {
       
       // Safely access port ID
       const portId = section.bottomRow.portIds[i];
-      if (portId && typeof portId === 'string' && portId.trim() !== '') {
-        // Safely access channel number
-        const channelNumber = section.bottomRow.channelNumbers && section.bottomRow.channelNumbers[i] ? 
-                             section.bottomRow.channelNumbers[i].trim() : '';
-        
-        const groupInfo = findGroupForPort(section.bottomRow.groupLabels, i);
-        ports.push({
-          x: canvasPos.x,
-          y: canvasPos.y,
-          gridX: gridX,
-          gridY: gridY,
-          id: portId.trim(),
-          channelNumber: channelNumber,
-          groupLabel: groupInfo.label,
-          groupInternalId: groupInfo.internalId,
-          row: 'bottom',
-          section: sectionIndex
-        });
-      }
+      const hasValidPortId = portId && typeof portId === 'string' && portId.trim() !== '';
+      
+      // Safely access channel number
+      const channelNumber = section.bottomRow.channelNumbers && section.bottomRow.channelNumbers[i] ? 
+                           section.bottomRow.channelNumbers[i].trim() : '';
+      
+      const groupInfo = findGroupForPort(section.bottomRow.groupLabels, i);
+      
+      // Create port object (either live or dead)
+      const port = {
+        x: canvasPos.x,
+        y: canvasPos.y,
+        gridX: gridX,
+        gridY: gridY,
+        id: hasValidPortId ? portId.trim() : 'null',
+        channelNumber: channelNumber,
+        groupLabel: groupInfo.label,
+        groupInternalId: groupInfo.internalId,
+        row: 'bottom',
+        section: sectionIndex,
+        isDead: !hasValidPortId
+      };
+      
+      ports.push(port);
     }
     
     // Move down for the next section

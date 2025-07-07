@@ -39,7 +39,7 @@ function mousePressed(p5, state) {
   
   // Check if we're clicking on a port first (ports take priority over cable deletion)
   const port = getPortAt(mouseX, mouseY, state.ports, portRadius * 1.5);
-  if (port !== null) {
+  if (port !== null && !port.isDead) {
     // If we have an active cable, try to connect it
     if (state.activeCable !== null) {
       // Check if the port is already connected

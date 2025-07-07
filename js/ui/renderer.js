@@ -14,6 +14,7 @@ import {
   textShadowOpacity,
   channelNumberColor,
   defaultPortColor,
+  deadPortColor,
   highlightPortColor,
   groupBoxColor,
   portRadius,
@@ -350,7 +351,10 @@ function drawPorts(p5, state, closestAvailablePort) {
     
     // Determine port fill color
     let portFillColor;
-    if (isPortConnected(p, state.connections)) {
+    if (p.isDead) {
+      // Dead ports use the configured dead port color
+      portFillColor = `rgb(${deadPortColor}, ${deadPortColor}, ${deadPortColor})`;
+    } else if (isPortConnected(p, state.connections)) {
       // Find the connection this port belongs to
       const conn = state.connections.find(c => {
         // Check for different connection formats
@@ -405,8 +409,8 @@ function findClosestAvailablePort(state) {
   const highlightThreshold = portRadius * 1.5; // Maximum distance to highlight a port (just slightly larger than the port itself)
   
   state.ports.forEach(p => {
-    // Skip the active cable port if it exists
-    if ((state.activeCable !== null && p.id !== state.activeCable) || state.activeCable === null) {
+    // Skip the active cable port if it exists, and skip dead ports
+    if (((state.activeCable !== null && p.id !== state.activeCable) || state.activeCable === null) && !p.isDead) {
       // Only consider unconnected ports
       if (!isPortConnected(p, state.connections)) {
         const distance = Math.sqrt(
