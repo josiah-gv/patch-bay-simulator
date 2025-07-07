@@ -42,7 +42,7 @@ export const safeZoneRadius = scaled(portRadius * 1.5); // Match the highlight a
 export const margin = scaled(10); // Set to match roomBoxTopPadding so outer box edges touch canvas edges
 export const portSpacing = scaled(32); // Scaled for 1920x1080 resolution
 export const rowSpacing = scaled(74); // Scaled for 1920x1080 resolution
-export const sectionSpacing = scaled(77); // Scaled for 1920x1080 resolution
+export const sectionSpacing = scaled(74); // Scaled for 1920x1080 resolution
 export const midGapWidth = scaled(32); // width of gap between columns 24 and 25 (same as portSpacing)
 
 // Canvas dimensions
@@ -61,7 +61,7 @@ export const cableSagBase = scaled(48); // Scaled for 1920x1080 resolution
 export const cableSagFactor = 0.08; // Ratio - remains unscaled
 
 // Group box appearance
-export const groupBoxStrokeWeight = scaled(2); // Scaled for 1920x1080 resolution
+export const groupBoxStrokeWeight = scaled(1); // Scaled for 1920x1080 resolution
 
 // Text sizes
 export const titleTextSize = scaled(38); // Scaled for 1920x1080 resolution
@@ -86,7 +86,7 @@ export const channelNumberColor = [200, 200, 200]; // Light grey for channel num
 export const defaultPortColor = 100; // Default gray for unconnected ports
 export const deadPortColor = 35; // Darker gray for dead ports (60% of default)
 export const highlightPortColor = [100, 200, 100]; // Green highlight for closest available port
-export const groupBoxColor = [150, 150, 150]; // Brighter grey for better visibility of group boxes
+export const groupBoxColor = [100, 100, 100]; // Brighter grey for better visibility of group boxes
 
 // Text shadow settings
 export const textShadowOffsetX = scaled(2); // Horizontal offset for text shadow
