@@ -95,11 +95,24 @@ function draw(p5, state) {
     const hasVisibleRooms = state.roomStates && Object.values(state.roomStates).some(roomState => roomState.visible);
     
     if (!hasVisibleRooms) {
-      // If no rooms are visible, just draw background and return
+      // Resize container to medium height when no room is visible
+      const canvasContainer = document.getElementById('canvas-container');
+      if (canvasContainer) {
+        document.documentElement.style.setProperty('--container-height', '400px');
+      }
+      
+      // If no rooms are visible, draw background and show message
       if (isLayerDirty(LAYERS.BACKGROUND)) {
         clearBackgroundLayer();
         drawBackground(p5, state);
         markLayerAsClean(LAYERS.BACKGROUND);
+      }
+      
+      // Show "Select a room above to begin patching!" message
+      if (isLayerDirty(LAYERS.TEXT)) {
+        clearTextLayer();
+        drawNoRoomMessage();
+        markLayerAsClean(LAYERS.TEXT);
       }
       
       // Clear other layers when no rooms are visible
@@ -114,10 +127,6 @@ function draw(p5, state) {
       if (isLayerDirty(LAYERS.PORT)) {
         clearPortLayer();
         markLayerAsClean(LAYERS.PORT);
-      }
-      if (isLayerDirty(LAYERS.TEXT)) {
-        clearTextLayer();
-        markLayerAsClean(LAYERS.TEXT);
       }
       return;
     }
@@ -876,6 +885,39 @@ function drawText(p5, state) {
    // drawGridOriginIndicator(ctx);
   } catch (error) {
     console.error('Error drawing labels and text:', error);
+  }
+}
+
+/**
+ * Draws a message when no room is selected
+ */
+function drawNoRoomMessage() {
+  const ctx = getTextContext();
+  if (!ctx) return;
+  
+  try {
+    // Set text properties
+    ctx.fillStyle = `rgb(${textColor}, ${textColor}, ${textColor})`;
+    ctx.font = `30px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Get the actual patch bay section width from the DOM
+    const patchBaySection = document.querySelector('.patch-bay-section');
+    let containerWidth = canvasWidth; // fallback to canvas width
+    if (patchBaySection) {
+      const rect = patchBaySection.getBoundingClientRect();
+      containerWidth = rect.width;
+    }
+    
+    // Calculate center position based on container width
+    const centerX = containerWidth / 2;
+    const centerY = 200; // Position message in upper portion of reduced height container
+    
+    // Draw the message with shadow
+    drawTextWithShadowOnContext(ctx, 'Select a room above to begin patching!', centerX, centerY);
+  } catch (error) {
+    console.error('Error drawing no room message:', error);
   }
 }
 

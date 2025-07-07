@@ -241,6 +241,9 @@ window.setup = function() {
     // Create proper UI controls
     createControlButtons();
     
+    // Initialize control button visibility
+    updateControlButtonsVisibility();
+    
     console.log('Setup completed successfully');
   } catch (error) {
     console.error('Error in setup function:', error);
@@ -291,6 +294,10 @@ function showRoom(event) {
     
     // Mark all layers as dirty to trigger redraw
     markAllLayersAsDirty();
+    
+    // Update control button visibility
+    updateControlButtonsVisibility();
+    
     console.log(`Room '${roomName}' displayed as active room`);
   }
 }
@@ -325,6 +332,10 @@ function hideRoom(event) {
     
     // Mark all layers as dirty to trigger redraw
     markAllLayersAsDirty();
+    
+    // Update control button visibility
+    updateControlButtonsVisibility();
+    
     console.log(`Room '${roomName}' hidden`);
   }
 }
@@ -809,6 +820,10 @@ window.reloadRooms = async function() {
 
 
 
+// Global reference to control elements
+let controlsContainer = null;
+let clearPatchesButton = null;
+
 /**
  * Create control buttons that integrate with the UI
  */
@@ -820,7 +835,7 @@ function createControlButtons() {
   }
   
   // Create controls container
-  const controlsContainer = document.createElement('div');
+  controlsContainer = document.createElement('div');
   controlsContainer.style.cssText = `
     display: flex;
     gap: 12px;
@@ -830,9 +845,9 @@ function createControlButtons() {
   `;
   
   // Create Clear All button
-  const clearBtn = document.createElement('button');
-  clearBtn.textContent = 'Clear Patches';
-  clearBtn.style.cssText = `
+  clearPatchesButton = document.createElement('button');
+  clearPatchesButton.textContent = 'Clear Patches';
+  clearPatchesButton.style.cssText = `
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.3);
     color: #ef4444;
@@ -842,20 +857,37 @@ function createControlButtons() {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: none;
   `;
-  clearBtn.addEventListener('mouseenter', () => {
-    clearBtn.style.background = 'rgba(239, 68, 68, 0.2)';
-    clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+  clearPatchesButton.addEventListener('mouseenter', () => {
+    clearPatchesButton.style.background = 'rgba(239, 68, 68, 0.2)';
+    clearPatchesButton.style.borderColor = 'rgba(239, 68, 68, 0.5)';
   });
-  clearBtn.addEventListener('mouseleave', () => {
-    clearBtn.style.background = 'rgba(239, 68, 68, 0.1)';
-    clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+  clearPatchesButton.addEventListener('mouseleave', () => {
+    clearPatchesButton.style.background = 'rgba(239, 68, 68, 0.1)';
+    clearPatchesButton.style.borderColor = 'rgba(239, 68, 68, 0.3)';
   });
-  clearBtn.addEventListener('click', () => clearAllPatches(appState));
+  clearPatchesButton.addEventListener('click', () => clearAllPatches(appState));
   
   // Add buttons to container
-  controlsContainer.appendChild(clearBtn);
+  controlsContainer.appendChild(clearPatchesButton);
   
   // Add container to patch bay section
   patchBaySection.appendChild(controlsContainer);
+}
+
+/**
+ * Update the visibility of control buttons based on room state
+ */
+function updateControlButtonsVisibility() {
+  if (!clearPatchesButton) return;
+  
+  // Check if any rooms are visible
+  const hasVisibleRooms = appState.roomStates && Object.values(appState.roomStates).some(roomState => roomState.visible);
+  
+  if (hasVisibleRooms) {
+    clearPatchesButton.style.display = 'block';
+  } else {
+    clearPatchesButton.style.display = 'none';
+  }
 }
