@@ -42,7 +42,7 @@ export const safeZoneRadius = scaled(portRadius * 1.5); // Match the highlight a
 export const margin = scaled(12); // Set to match roomBoxTopPadding so outer box edges touch canvas edges
 export const portSpacing = scaled(32); // Scaled for 1920x1080 resolution
 export const rowSpacing = scaled(74); // Scaled for 1920x1080 resolution
-export const sectionSpacing = scaled(111); // Scaled for 1920x1080 resolution
+export const sectionSpacing = scaled(77); // Scaled for 1920x1080 resolution
 export const midGapWidth = scaled(32); // width of gap between columns 24 and 25 (same as portSpacing)
 
 // Canvas dimensions
@@ -66,7 +66,7 @@ export const groupBoxStrokeWeight = scaled(2); // Scaled for 1920x1080 resolutio
 // Text sizes
 export const titleTextSize = scaled(38); // Scaled for 1920x1080 resolution
 export const groupLabelTextSize = scaled(21); // Scaled for 1920x1080 resolution
-export const channelNumberTextSize = scaled(20); // Scaled for 1920x1080 resolution
+export const channelNumberTextSize = scaled(18); // Scaled for 1920x1080 resolution
 
 // Padding values
 export const topLabelPadding = scaled(62); // Scaled for 1920x1080 resolution

@@ -161,6 +161,24 @@ window.setup = function() {
       // Generate toggle buttons for all rooms
       generateRoomToggleButtons(rooms);
       
+      // Load the server room as default
+      const serverRoom = rooms.find(room => room.name === '1863 Server Room');
+      if (serverRoom) {
+        // Dispatch event to show the server room
+        window.dispatchEvent(new CustomEvent('showRoom', { 
+          detail: { roomName: serverRoom.name } 
+        }));
+        
+        // Update the button state to show it's active
+        const serverButton = document.getElementById(`room-toggle-${serverRoom.name.replace(/\s+/g, '-').toLowerCase()}`);
+        if (serverButton) {
+          serverButton.classList.remove('inactive');
+          serverButton.classList.add('active');
+        }
+        
+        console.log('Server room loaded as default');
+      }
+      
       // Mark all layers as dirty
       markAllLayersAsDirty();
     }).catch(error => {
@@ -188,6 +206,24 @@ window.setup = function() {
       
       // Generate toggle buttons for fallback rooms
       generateRoomToggleButtons(appState.rooms);
+      
+      // Load the server room as default if available
+      const serverRoom = appState.rooms.find(room => room.name === '1863 Server Room');
+      if (serverRoom) {
+        // Dispatch event to show the server room
+        window.dispatchEvent(new CustomEvent('showRoom', { 
+          detail: { roomName: serverRoom.name } 
+        }));
+        
+        // Update the button state to show it's active
+        const serverButton = document.getElementById(`room-toggle-${serverRoom.name.replace(/\s+/g, '-').toLowerCase()}`);
+        if (serverButton) {
+          serverButton.classList.remove('inactive');
+          serverButton.classList.add('active');
+        }
+        
+        console.log('Server room loaded as default (fallback)');
+      }
       
       // Mark all layers as dirty
       markAllLayersAsDirty();
