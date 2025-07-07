@@ -41,15 +41,8 @@ import {
   ringGap
 } from '../config/constants.js';
 
-// Import room box constants and grid system
+// Import grid system
 import {
-  roomBoxColor,
-  roomBoxStrokeWeight,
-  roomBoxPadding,
-  roomBoxTopPadding,
-  roomBoxBottomPadding,
-  roomBoxLeftPadding,
-  roomBoxRightPadding,
   getGridCanvasBounds
 } from '../config/constants.js';
 
@@ -177,7 +170,6 @@ function draw(p5, state) {
     
     if (isLayerDirty(LAYERS.GROUP_BOX)) {
       clearGroupBoxLayer();
-      drawRoomBox(p5, state);
       drawGroupBoxes(p5, state);
       markLayerAsClean(LAYERS.GROUP_BOX);
     }
@@ -1048,38 +1040,12 @@ function distToSegment(p, a, b) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-/**
- * Draws a box around the entire room grid, including room name at top and group boxes at bottom
- * @param {Object} p5 - The p5 instance
- * @param {Object} state - The application state
- */
-function drawRoomBox(p5, state) {
-  const ctx = getGroupBoxContext();
-  if (!ctx) return;
-  
-  // Check if we have any visible rooms
-  const hasVisibleRooms = state.roomStates && Object.values(state.roomStates).some(roomState => roomState.visible);
-  if (!hasVisibleRooms) {
-    return;
-  }
-  
-  // Use the grid bounds system for consistent positioning
-  const bounds = getGridCanvasBounds();
-  
-  // Draw the room box using grid bounds
-  ctx.strokeStyle = `rgb(${roomBoxColor[0]}, ${roomBoxColor[1]}, ${roomBoxColor[2]})`;
-  ctx.lineWidth = roomBoxStrokeWeight;
-  
-  ctx.beginPath();
-  ctx.rect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
-  ctx.stroke();
-}
+
 
 // Export the functions
 export {
   draw,
   drawBackground,
-  drawRoomBox,
   drawGroupBoxes,
   drawCables,
   drawPorts,

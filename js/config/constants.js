@@ -99,8 +99,8 @@ export const fontFamily = 'Montserrat'; // Main font for the application
 // Grid positioning system
 // Grid origin point - serves as the anchor for all relative positioning
 export const gridOrigin = {
-  x: scaled(5),  // Default grid X position on canvas
-  y: scaled(5)   // Default grid Y position on canvas
+  x: scaled(0),  // Default grid X position on canvas
+  y: scaled(0)   // Default grid Y position on canvas
 };
 
 // Grid logical dimensions (relative to grid origin)
@@ -178,12 +178,3 @@ export const cableColors = [
   [255, 100, 255], // magenta
   [100, 255, 255]  // cyan
 ];
-
-// Room box appearance settings
-export const roomBoxColor = [150, 150, 150]; // Same as group box color by default
-export const roomBoxStrokeWeight = scaled(2); // Slightly thicker than group boxes
-export const roomBoxPadding = scaled(49); // Scaled for 1920x1080 resolution
-export const roomBoxTopPadding = scaled(12); // Scaled for 1920x1080 resolution
-export const roomBoxBottomPadding = scaled(49); // Scaled for 1920x1080 resolution
-export const roomBoxLeftPadding = scaled(0); // No left padding so outer box edge touches canvas edge
-export const roomBoxRightPadding = scaled(49); // Scaled for 1920x1080 resolution
