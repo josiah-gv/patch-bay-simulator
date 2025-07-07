@@ -55,7 +55,7 @@ import {
 import { isPortConnected, getPortAt } from '../models/Port.js';
 
 // Import cross-room registry functions
-import { getPortSignalColor, hasPortCrossRoomSignal } from '../models/CrossRoomRegistry.js';
+import { getPortSignalColor, hasPortCrossRoomSignal, getPortCrossRoomSignalColor } from '../models/CrossRoomRegistry.js';
 
 // Import layer manager
 import {
@@ -330,8 +330,8 @@ function drawPorts(p5, state, closestAvailablePort) {
   state.ports.forEach(p => {
     // Check for cross-room signal first
     const currentRoomId = state.activeRoomId;
-    const crossRoomSignalColor = getPortSignalColor(p.id, currentRoomId);
     const hasCrossRoomSignal = hasPortCrossRoomSignal(p.id, currentRoomId);
+    const crossRoomSignalColor = getPortCrossRoomSignalColor(p.id, currentRoomId);
     
     // Debug logging for cross-room signals - only on click events
     if (p.id === 'p0001' && state.debugOnClick) {

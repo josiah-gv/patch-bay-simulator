@@ -144,6 +144,26 @@ function getPortSignalColor(portId, roomId) {
 }
 
 /**
+ * Gets the signal color from other rooms (not the current room)
+ * @param {string} portId - The port ID
+ * @param {string} currentRoomId - The current room ID
+ * @returns {Array|null} - The signal color [r, g, b] from another room or null
+ */
+function getPortCrossRoomSignalColor(portId, currentRoomId) {
+  if (!portId || !currentRoomId || !crossRoomPortRegistry[portId]) return null;
+  
+  const signals = crossRoomPortRegistry[portId].signals;
+  // Find the first signal from a different room
+  for (const roomId in signals) {
+    const signal = signals[roomId];
+    if (signal && signal.sourceRoom !== currentRoomId) {
+      return signal.color;
+    }
+  }
+  return null;
+}
+
+/**
  * Gets all rooms that contain a specific port ID
  * @param {string} portId - The port ID
  * @returns {Array} - Array of room IDs
@@ -154,16 +174,20 @@ function getRoomsWithPort(portId) {
 }
 
 /**
- * Checks if a port has any cross-room signals
+ * Checks if a port has signals from other rooms (not the current room)
  * @param {string} portId - The port ID
- * @param {string} roomId - The room ID to check
- * @returns {boolean} - True if the port has cross-room signals
+ * @param {string} currentRoomId - The current room ID
+ * @returns {boolean} - True if the port has signals from other rooms
  */
-function hasPortCrossRoomSignal(portId, roomId) {
-  if (!portId || !roomId || !crossRoomPortRegistry[portId]) return false;
+function hasPortCrossRoomSignal(portId, currentRoomId) {
+  if (!portId || !currentRoomId || !crossRoomPortRegistry[portId]) return false;
   
-  const signal = crossRoomPortRegistry[portId].signals[roomId];
-  return signal && signal.sourceRoom !== roomId;
+  // Check if there are any signals from rooms OTHER than the current room
+  const signals = crossRoomPortRegistry[portId].signals;
+  return Object.keys(signals).some(roomId => {
+    const signal = signals[roomId];
+    return signal && signal.sourceRoom !== currentRoomId;
+  });
 }
 
 /**
@@ -232,6 +256,7 @@ export {
   removePortSignal,
   propagateSignalToOtherRooms,
   getPortSignalColor,
+  getPortCrossRoomSignalColor,
   getRoomsWithPort,
   hasPortCrossRoomSignal,
   getPortSignalSourceRoom,
