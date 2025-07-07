@@ -8,8 +8,12 @@
  * Structure: {
  *   portId: {
  *     rooms: [roomId1, roomId2, ...],
+ *     masterSource: { roomId: 'roomId', connected: true },
  *     signals: {
  *       roomId: { color: [r,g,b], sourceRoom: 'roomId' }
+ *     },
+ *     connections: {
+ *       roomId: boolean // tracks if port is connected in each room
  *     }
  *   }
  * }
@@ -59,7 +63,47 @@ function unregisterPort(portId, roomId) {
 }
 
 /**
- * Sets a signal for a port in a specific room
+ * Sets a port as the master source for its portID
+ * @param {string} portId - The port ID
+ * @param {string} roomId - The room ID where the master source is located
+ * @param {Array} color - The signal color [r, g, b]
+ */
+function setMasterSource(portId, roomId, color) {
+  if (!portId || !roomId || !color) return;
+  
+  console.log('Setting master source:', { portId, roomId, color });
+  
+  if (!crossRoomPortRegistry[portId]) {
+    console.log('Port not registered, registering now:', portId, roomId);
+    registerPort(portId, roomId);
+  }
+  
+  // Set this port as the master source
+  crossRoomPortRegistry[portId].masterSource = {
+    roomId: roomId,
+    connected: true
+  };
+  
+  // Mark this port as connected in its room
+  if (!crossRoomPortRegistry[portId].connections) {
+    crossRoomPortRegistry[portId].connections = {};
+  }
+  crossRoomPortRegistry[portId].connections[roomId] = true;
+  
+  // Set the signal for this room
+  crossRoomPortRegistry[portId].signals[roomId] = {
+    color: color,
+    sourceRoom: roomId
+  };
+  
+  console.log('Registry after setting master source:', crossRoomPortRegistry[portId]);
+  
+  // Propagate signal to all other rooms (making them receivers)
+  propagateSignalToOtherRooms(portId, roomId, color);
+}
+
+/**
+ * Sets a signal for a port in a specific room (legacy function for compatibility)
  * @param {string} portId - The port ID
  * @param {string} roomId - The room ID where the signal originates
  * @param {Array} color - The signal color [r, g, b]
@@ -74,15 +118,22 @@ function setPortSignal(portId, roomId, color) {
     registerPort(portId, roomId);
   }
   
-  crossRoomPortRegistry[portId].signals[roomId] = {
-    color: color,
-    sourceRoom: roomId
-  };
+  // Check if this is the first connection for this portID
+  const hasExistingMaster = crossRoomPortRegistry[portId].masterSource;
   
-  console.log('Registry after setting signal:', crossRoomPortRegistry[portId]);
-  
-  // Propagate signal to all other rooms with this port
-  propagateSignalToOtherRooms(portId, roomId, color);
+  if (!hasExistingMaster) {
+    // This becomes the master source
+    setMasterSource(portId, roomId, color);
+  } else {
+    // This is a connection in another room, mark as connected
+    setPortConnectionStatus(portId, roomId, true);
+    
+    // Set the signal
+    crossRoomPortRegistry[portId].signals[roomId] = {
+      color: color,
+      sourceRoom: crossRoomPortRegistry[portId].masterSource.roomId
+    };
+  }
 }
 
 /**
@@ -191,6 +242,61 @@ function hasPortCrossRoomSignal(portId, currentRoomId) {
 }
 
 /**
+ * Sets a port connection status in a specific room
+ * @param {string} portId - The port ID
+ * @param {string} roomId - The room ID
+ * @param {boolean} connected - Whether the port is connected
+ */
+function setPortConnectionStatus(portId, roomId, connected) {
+  if (!portId || !roomId) return;
+  
+  if (!crossRoomPortRegistry[portId]) {
+    registerPort(portId, roomId);
+  }
+  
+  if (!crossRoomPortRegistry[portId].connections) {
+    crossRoomPortRegistry[portId].connections = {};
+  }
+  
+  crossRoomPortRegistry[portId].connections[roomId] = connected;
+}
+
+/**
+ * Gets the port type for a specific port in a room
+ * @param {string} portId - The port ID
+ * @param {string} roomId - The room ID
+ * @returns {string} - 'master', 'receiver', 'transmitter', or 'unconnected'
+ */
+function getPortType(portId, roomId) {
+  if (!portId || !roomId || !crossRoomPortRegistry[portId]) return 'unconnected';
+  
+  const registry = crossRoomPortRegistry[portId];
+  const isConnectedInRoom = registry.connections && registry.connections[roomId];
+  const isMasterSource = registry.masterSource && registry.masterSource.roomId === roomId;
+  const hasSignalFromOtherRoom = hasPortCrossRoomSignal(portId, roomId);
+  
+  if (isMasterSource) {
+    return 'master';
+  } else if (hasSignalFromOtherRoom) {
+    return isConnectedInRoom ? 'transmitter' : 'receiver';
+  } else {
+    return 'unconnected';
+  }
+}
+
+/**
+ * Checks if a port should display a ring
+ * @param {string} portId - The port ID
+ * @param {string} roomId - The room ID
+ * @returns {boolean} - True if the port should show a ring
+ */
+function shouldPortShowRing(portId, roomId) {
+  const portType = getPortType(portId, roomId);
+  // Only receivers and transmitters show rings, not master sources
+  return portType === 'receiver' || portType === 'transmitter';
+}
+
+/**
  * Gets the source room for a port's signal
  * @param {string} portId - The port ID
  * @param {string} roomId - The room ID to check
@@ -253,12 +359,16 @@ export {
   registerPort,
   unregisterPort,
   setPortSignal,
+  setMasterSource,
+  setPortConnectionStatus,
   removePortSignal,
   propagateSignalToOtherRooms,
   getPortSignalColor,
   getPortCrossRoomSignalColor,
   getRoomsWithPort,
   hasPortCrossRoomSignal,
+  getPortType,
+  shouldPortShowRing,
   getPortSignalSourceRoom,
   clearPortSignals,
   getRegistry,

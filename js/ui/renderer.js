@@ -55,7 +55,7 @@ import {
 import { isPortConnected, getPortAt } from '../models/Port.js';
 
 // Import cross-room registry functions
-import { getPortSignalColor, hasPortCrossRoomSignal, getPortCrossRoomSignalColor } from '../models/CrossRoomRegistry.js';
+import { getPortSignalColor, hasPortCrossRoomSignal, getPortCrossRoomSignalColor, shouldPortShowRing } from '../models/CrossRoomRegistry.js';
 
 // Import layer manager
 import {
@@ -342,8 +342,8 @@ function drawPorts(p5, state, closestAvailablePort) {
       });
     }
     
-    // Draw cross-room signal ring if present
-    if (hasCrossRoomSignal && crossRoomSignalColor) {
+    // Draw cross-room signal ring if present and port should show ring
+    if (hasCrossRoomSignal && crossRoomSignalColor && shouldPortShowRing(p.id, currentRoomId)) {
       ctx.beginPath();
       ctx.strokeStyle = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
       ctx.lineWidth = 4; // 4-pixel thick ring

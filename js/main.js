@@ -28,7 +28,11 @@ import {
   removePortSignal, 
   getPortSignalColor,
   hasPortCrossRoomSignal,
-  clearRegistry
+  clearRegistry,
+  setMasterSource,
+  setPortConnectionStatus,
+  getPortType,
+  shouldPortShowRing
 } from './models/CrossRoomRegistry.js';
 
 // Import UI modules
@@ -503,9 +507,24 @@ function updateCrossRoomSignalsForConnection(connection) {
   });
   
   if (portAId && portBId && color) {
-    // Set signals for both ports
+    // Set signals for both ports using the new port type system
     setPortSignal(portAId, connection.roomId, color);
     setPortSignal(portBId, connection.roomId, color);
+    
+    // Set connection status for both ports
+    setPortConnectionStatus(portAId, connection.roomId, true);
+    setPortConnectionStatus(portBId, connection.roomId, true);
+    
+    // Determine if one port should be the master source based on port types
+    const portAType = getPortType(portAId);
+    const portBType = getPortType(portBId);
+    
+    if (portAType === 'output' && portBType === 'input') {
+      setMasterSource(portAId, connection.roomId);
+    } else if (portAType === 'input' && portBType === 'output') {
+      setMasterSource(portBId, connection.roomId);
+    }
+    
     console.log('Cross-room signals set for ports:', portAId, 'and', portBId);
   } else {
     console.warn('Missing required data for cross-room signal:', { portAId, portBId, color });
@@ -533,6 +552,7 @@ function clearCrossRoomSignalsForConnection(connection) {
     
     if (!hasOtherConnections) {
       removePortSignal(portAId, connection.roomId);
+      setPortConnectionStatus(portAId, connection.roomId, false);
     }
   }
   
@@ -547,6 +567,7 @@ function clearCrossRoomSignalsForConnection(connection) {
     
     if (!hasOtherConnections) {
       removePortSignal(portBId, connection.roomId);
+      setPortConnectionStatus(portBId, connection.roomId, false);
     }
   }
 }

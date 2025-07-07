@@ -14,7 +14,7 @@ import { getPortAt, isPortConnected } from '../models/Port.js';
 import { findConnectionWithPort, createConnection } from '../models/Connection.js';
 
 // Import cross-room registry functions
-import { getPortSignalColor, hasPortCrossRoomSignal } from '../models/CrossRoomRegistry.js';
+import { getPortSignalColor, hasPortCrossRoomSignal, getPortCrossRoomSignalColor } from '../models/CrossRoomRegistry.js';
 
 // Import layer manager
 import { getLayerContext, markLayerAsDirty, markAllLayersAsDirty } from './layerManager.js';
@@ -143,10 +143,9 @@ function mousePressed(p5, state) {
         
         // Check if this port has a cross-room signal and use its color
         const currentRoomId = state.activeRoomId;
-        const crossRoomSignalColor = getPortSignalColor(port.id, currentRoomId);
-        const hasCrossRoomSignal = hasPortCrossRoomSignal(port.id, currentRoomId);
+        const crossRoomSignalColor = getPortCrossRoomSignalColor(port.id, currentRoomId);
         
-        if (hasCrossRoomSignal && crossRoomSignalColor) {
+        if (crossRoomSignalColor) {
           // Use the cross-room signal color for the new cable
           state.activeCableColor = crossRoomSignalColor;
         }
