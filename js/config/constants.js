@@ -165,6 +165,10 @@ export function getGridCanvasBounds(origin = gridOrigin) {
   };
 }
 
+// Ring appearance settings
+export const ringLineWidth = 3; // Thickness of cross-room signal rings
+export const ringGap = 3; // Gap between port and ring (in pixels)
+
 // Cable colors
 export const cableColors = [
   [100, 200, 255], // blue

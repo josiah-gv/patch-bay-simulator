@@ -36,7 +36,9 @@ import {
   gridOrigin,
   gridBounds,
   portSpacing,
-  midGapWidth
+  midGapWidth,
+  ringLineWidth,
+  ringGap
 } from '../config/constants.js';
 
 // Import room box constants and grid system
@@ -346,8 +348,8 @@ function drawPorts(p5, state, closestAvailablePort) {
     if (hasCrossRoomSignal && crossRoomSignalColor && shouldPortShowRing(p.id, currentRoomId)) {
       ctx.beginPath();
       ctx.strokeStyle = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
-      ctx.lineWidth = 4; // 4-pixel thick ring
-      ctx.arc(p.x, p.y, portRadius + 2, 0, Math.PI * 2); // Ring outside the port circle
+      ctx.lineWidth = ringLineWidth;
+      ctx.arc(p.x, p.y, portRadius + ringGap, 0, Math.PI * 2);
       ctx.stroke();
     }
     
