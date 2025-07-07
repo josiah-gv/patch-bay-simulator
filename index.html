@@ -126,7 +126,7 @@
 
         .main-content {
             width: 1500px; /* Updated to 1500px */
-            padding: 40px;
+            padding: 0px;
             min-width: 0;
             background: radial-gradient(ellipse at top, rgba(15, 15, 17, 0.9) 0%, rgba(13, 13, 15, 1) 70%);
             transition: margin-left 0.3s ease-in-out;
@@ -185,6 +185,7 @@
             border-radius: 20px;
             padding: 32px 20px 32px 40px;
             margin-bottom: 48px;
+            margin-left: 40px;
             position: relative;
             z-index: 2;
             width: 1420px; /* Updated to match new main-content width minus padding */
@@ -196,6 +197,7 @@
             color: #9ca3af;
             text-align: center;
             margin-bottom: 24px;
+            margin-left: 0px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -280,10 +282,10 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 24px;
-            padding: 40px;
+            padding: 0px;
             backdrop-filter: blur(20px);
             width: 1420px; /* Updated to match new main-content width minus padding */
-            overflow: visible; /* Allow content to expand */
+            overflow: hidden; /* Allow content to expand */
         }
 
         #canvas-container {

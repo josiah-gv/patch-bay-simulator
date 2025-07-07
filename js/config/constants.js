@@ -6,7 +6,7 @@
  * Fixed scale factor for room sizing
  * Static value - no longer reads from CSS variable
  */
-export const SCALE_FACTOR = 0.8;
+export const SCALE_FACTOR = 0.86;
 
 /**
  * Helper function to apply fixed scaling
