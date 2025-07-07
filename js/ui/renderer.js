@@ -358,7 +358,13 @@ function drawPorts(p5, state, closestAvailablePort) {
     let portFillColor;
     if (isPortConnected(p, state.connections)) {
       // Find the connection this port belongs to
-      const conn = state.connections.find(c => c.from === p.id || c.to === p.id);
+      const conn = state.connections.find(c => {
+        // Check for different connection formats
+        return (c.from === p.id || c.to === p.id) || // Legacy format
+               (c.portA && c.portA.id === p.id) ||        // New format portA
+               (c.portB && c.portB.id === p.id) ||        // New format portB
+               (c.a === p || c.b === p);                  // Legacy object format
+      });
       if (conn && conn.color) {
         // Use the cable's color for the port at full brightness
         portFillColor = `rgb(${conn.color[0]}, ${conn.color[1]}, ${conn.color[2]})`;
@@ -366,9 +372,6 @@ function drawPorts(p5, state, closestAvailablePort) {
         // Fallback if no color found
         portFillColor = 'rgb(150, 100, 100)';
       }
-    } else if (hasCrossRoomSignal && crossRoomSignalColor) {
-      // If port has cross-room signal but no local connection, use the signal color
-      portFillColor = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
     } else if (state.activeCable !== null && p.id === state.activeCable) {
       // Highlight the active cable source port with the stored cable color at full brightness
       const currentColor = state.activeCableColor || state.cableColors[state.currentColorIndex];
@@ -376,7 +379,7 @@ function drawPorts(p5, state, closestAvailablePort) {
     } else if (p === closestAvailablePort) {
       // Check if this port already has a cross-room signal color assigned
       if (hasCrossRoomSignal && crossRoomSignalColor) {
-        // Use the existing cross-room signal color
+        // Use the existing cross-room signal color for hover highlight
         portFillColor = `rgb(${crossRoomSignalColor[0]}, ${crossRoomSignalColor[1]}, ${crossRoomSignalColor[2]})`;
       } else {
         // Highlight the closest available port with the color of the active cable (if any) or next color
@@ -384,7 +387,9 @@ function drawPorts(p5, state, closestAvailablePort) {
         portFillColor = `rgb(${nextColor[0]}, ${nextColor[1]}, ${nextColor[2]})`;
       }
     } else {
-      portFillColor = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`; // default gray for unconnected ports
+      // Default gray for unconnected ports (including those with cross-room signals)
+      // Cross-room signals are indicated by the ring only, not port color
+      portFillColor = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`;
     }
     
     ctx.fillStyle = portFillColor;
