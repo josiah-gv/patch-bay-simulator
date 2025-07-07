@@ -160,6 +160,8 @@ function draw(p5, state) {
     if (closestPortChanged) {
       // If the closest port changed, the port layer needs redrawing
       markLayerAsDirty(LAYERS.PORT);
+      // Also mark group box layer dirty to redraw dead ports
+      markLayerAsDirty(LAYERS.GROUP_BOX);
     }
     
     // Only clear and redraw layers that are marked as dirty
@@ -172,6 +174,7 @@ function draw(p5, state) {
     if (isLayerDirty(LAYERS.GROUP_BOX)) {
       clearGroupBoxLayer();
       drawGroupBoxes(p5, state);
+      drawDeadPorts(p5, state);
       markLayerAsClean(LAYERS.GROUP_BOX);
     }
     
@@ -181,6 +184,7 @@ function draw(p5, state) {
       markLayerAsClean(LAYERS.CABLE);
     }
     
+    // Draw live ports after cables so they appear on top
     if (isLayerDirty(LAYERS.PORT)) {
       clearPortLayer();
       drawPorts(p5, state, state.closestAvailablePort);
@@ -300,7 +304,7 @@ function drawCables(p5, state) {
  * @param {Object} state - The application state
  * @param {Object} closestAvailablePort - The closest available port for highlighting
  */
-function drawPorts(p5, state, closestAvailablePort) {
+function drawPorts(p5, state, closestAvailablePort, onlyDeadPorts = false) {
   const ctx = getPortContext();
   if (!ctx) return;
   
@@ -323,6 +327,9 @@ function drawPorts(p5, state, closestAvailablePort) {
   }
   
   state.ports.forEach(p => {
+    // Filter ports based on the onlyDeadPorts parameter
+    if (onlyDeadPorts && !p.isDead) return;
+    if (!onlyDeadPorts && p.isDead) return;
     // Check for cross-room signal first
     const currentRoomId = state.activeRoomId;
     const hasCrossRoomSignal = hasPortCrossRoomSignal(p.id, currentRoomId);
@@ -390,6 +397,32 @@ function drawPorts(p5, state, closestAvailablePort) {
       portFillColor = `rgb(${defaultPortColor}, ${defaultPortColor}, ${defaultPortColor})`;
     }
     
+    ctx.fillStyle = portFillColor;
+    
+    // Draw the port circle
+    ctx.arc(p.x, p.y, portRadius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/**
+ * Draws dead ports on the group box layer (to appear behind cables)
+ * @param {Object} p5 - The p5 instance
+ * @param {Object} state - The application state
+ */
+function drawDeadPorts(p5, state) {
+  const ctx = getGroupBoxContext();
+  if (!ctx) return;
+  
+  state.ports.forEach(p => {
+    // Only draw dead ports
+    if (!p.isDead) return;
+    
+    // Begin a new path for the port circle
+    ctx.beginPath();
+    
+    // Dead ports use the configured dead port color
+    const portFillColor = `rgb(${deadPortColor}, ${deadPortColor}, ${deadPortColor})`;
     ctx.fillStyle = portFillColor;
     
     // Draw the port circle
