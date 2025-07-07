@@ -807,11 +807,7 @@ window.reloadRooms = async function() {
   }
 };
 
-// Add reload button in setup function
-// After the "Clear All Patches" button:
-const reloadBtn = createButton("Reload Rooms");
-reloadBtn.position(150, appState.canvasHeight + 10);
-reloadBtn.mousePressed(() => window.reloadRooms());
+
 
 /**
  * Create control buttons that integrate with the UI
@@ -828,13 +824,14 @@ function createControlButtons() {
   controlsContainer.style.cssText = `
     display: flex;
     gap: 12px;
-    margin-top: 20px;
+    margin-top: 0px;
+    margin-bottom: 20px;
     justify-content: center;
   `;
   
   // Create Clear All button
   const clearBtn = document.createElement('button');
-  clearBtn.textContent = 'Clear All Patches';
+  clearBtn.textContent = 'Clear Patches';
   clearBtn.style.cssText = `
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.3);
@@ -856,33 +853,8 @@ function createControlButtons() {
   });
   clearBtn.addEventListener('click', () => clearAllPatches(appState));
   
-  // Create Reload Rooms button
-  const reloadBtn = document.createElement('button');
-  reloadBtn.textContent = 'Reload Rooms';
-  reloadBtn.style.cssText = `
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #10b981;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  `;
-  reloadBtn.addEventListener('mouseenter', () => {
-    reloadBtn.style.background = 'rgba(16, 185, 129, 0.2)';
-    reloadBtn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
-  });
-  reloadBtn.addEventListener('mouseleave', () => {
-    reloadBtn.style.background = 'rgba(16, 185, 129, 0.1)';
-    reloadBtn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-  });
-  reloadBtn.addEventListener('click', () => window.reloadRooms());
-  
   // Add buttons to container
   controlsContainer.appendChild(clearBtn);
-  controlsContainer.appendChild(reloadBtn);
   
   // Add container to patch bay section
   patchBaySection.appendChild(controlsContainer);

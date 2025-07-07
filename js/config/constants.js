@@ -101,7 +101,7 @@ export const fontFamily = 'SF Pro Display, -apple-system, BlinkMacSystemFont, sa
 // Grid origin point - serves as the anchor for all relative positioning
 export const gridOrigin = {
   x: scaled(0),  // Default grid X position on canvas
-  y: scaled(0)   // Default grid Y position on canvas
+  y: scaled(10)   // Default grid Y position on canvas
 };
 
 // Grid logical dimensions (relative to grid origin)
@@ -110,7 +110,7 @@ export const gridBounds = {
   height: scaled(100),   // Default height - will be overridden dynamically
   padding: {
     top: scaled(0),     // Reduced top padding to prevent negative bounds
-    right: scaled(50),   // Right padding
+    right: scaled(0),   // Right padding
     bottom: scaled(-35),  // Bottom padding
     left: scaled(-5)     // Left padding
   }
