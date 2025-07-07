@@ -129,8 +129,17 @@ export function clearLayer(layerId) {
   const context = getLayerContext(layerId);
   
   if (context) {
-    // Clear the canvas using logical dimensions (DPI scaling is already applied)
-    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    // Get the actual canvas element to use its current dimensions
+    const canvas = document.getElementById(layerId);
+    if (canvas) {
+      // Use actual canvas dimensions instead of static constants
+      const actualWidth = canvas.width / (window.devicePixelRatio || 1);
+      const actualHeight = canvas.height / (window.devicePixelRatio || 1);
+      context.clearRect(0, 0, actualWidth, actualHeight);
+    } else {
+      // Fallback to constants if canvas not found
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+    }
     // Mark the layer as dirty after clearing
     markLayerAsDirty(layerId);
     return true;
