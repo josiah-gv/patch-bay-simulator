@@ -65,8 +65,8 @@ export const groupBoxStrokeWeight = scaled(2); // Scaled for 1920x1080 resolutio
 
 // Text sizes
 export const titleTextSize = scaled(38); // Scaled for 1920x1080 resolution
-export const groupLabelTextSize = scaled(21); // Scaled for 1920x1080 resolution
-export const channelNumberTextSize = scaled(18); // Scaled for 1920x1080 resolution
+export const groupLabelTextSize = scaled(16); // Scaled for 1920x1080 resolution
+export const channelNumberTextSize = scaled(13); // Scaled for 1920x1080 resolution
 
 // Padding values
 export const topLabelPadding = scaled(62); // Scaled for 1920x1080 resolution

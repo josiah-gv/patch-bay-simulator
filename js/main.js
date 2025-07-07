@@ -161,7 +161,22 @@ window.setup = function() {
       // Generate toggle buttons for all rooms
       generateRoomToggleButtons(rooms);
       
-      // No default room loading - user must manually select a room
+      // Load server room by default
+      const serverRoom = rooms.find(room => room.name.toLowerCase().includes('server'));
+      if (serverRoom) {
+        // Activate the server room button
+        const serverButton = document.getElementById(`room-toggle-${serverRoom.name.replace(/\s+/g, '-').toLowerCase()}`);
+        if (serverButton) {
+          serverButton.classList.remove('inactive');
+          serverButton.classList.add('active');
+        }
+        
+        // Show the server room
+        window.dispatchEvent(new CustomEvent('showRoom', { 
+          detail: { roomName: serverRoom.name } 
+        }));
+        console.log(`Server room '${serverRoom.name}' loaded by default`);
+      }
       
       // Mark all layers as dirty
       markAllLayersAsDirty();
@@ -191,7 +206,22 @@ window.setup = function() {
       // Generate toggle buttons for fallback rooms
       generateRoomToggleButtons(appState.rooms);
       
-      // No default room loading - user must manually select a room
+      // Load server room by default (fallback)
+      const serverRoom = appState.rooms.find(room => room.name.toLowerCase().includes('server'));
+      if (serverRoom) {
+        // Activate the server room button
+        const serverButton = document.getElementById(`room-toggle-${serverRoom.name.replace(/\s+/g, '-').toLowerCase()}`);
+        if (serverButton) {
+          serverButton.classList.remove('inactive');
+          serverButton.classList.add('active');
+        }
+        
+        // Show the server room
+        window.dispatchEvent(new CustomEvent('showRoom', { 
+          detail: { roomName: serverRoom.name } 
+        }));
+        console.log(`Server room '${serverRoom.name}' loaded by default (fallback)`);
+      }
       
       // Mark all layers as dirty
       markAllLayersAsDirty();

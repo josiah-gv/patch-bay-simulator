@@ -520,7 +520,7 @@ function drawGroupBoxes(p5, state) {
     const portsBySection = {};
     
     state.ports.forEach(port => {
-      if (!port || typeof port.section === 'undefined' || !port.row) {
+      if (!port || typeof port.section === 'undefined' || !port.row || port.isDead) {
         return;
       }
       
@@ -705,7 +705,7 @@ function drawText(p5, state) {
     const portsBySection = {};
     
     state.ports.forEach(port => {
-      if (!port || typeof port.section === 'undefined' || !port.row) {
+      if (!port || typeof port.section === 'undefined' || !port.row || port.isDead) {
         return;
       }
       
