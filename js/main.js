@@ -586,6 +586,10 @@ function resizeCanvasToActiveRoom() {
       // Update canvas dimensions
       appState.canvasHeight = roomHeight;
       
+      // Update CSS custom properties to match new canvas dimensions
+      document.documentElement.style.setProperty('--container-width', `${roomWidth}px`);
+      document.documentElement.style.setProperty('--container-height', `${roomHeight}px`);
+      
       // Resize both p5 canvas and layered canvases
       resizeCanvas(roomWidth, roomHeight);
       resizeAllLayers(roomWidth, roomHeight);

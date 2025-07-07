@@ -38,7 +38,7 @@
 
         .container {
             display: flex;
-            height: 800px; /* Fixed height instead of viewport-based */
+            min-height: 800px; /* Minimum height, can expand */
             position: relative; /* For absolute positioning of sidebar */
         }
 
@@ -51,7 +51,7 @@
             padding: 40px 32px;
             flex-shrink: 0;
             position: absolute;
-            height: 800px; /* Fixed height instead of viewport-based */
+            min-height: 800px; /* Minimum height, can expand */
             left: -320px; /* Start collapsed */
             transition: left 0.3s ease-in-out;
             z-index: 50;
@@ -283,7 +283,7 @@
             padding: 40px;
             backdrop-filter: blur(20px);
             width: 1420px; /* Updated to match new main-content width minus padding */
-            overflow: hidden;
+            overflow: visible; /* Allow content to expand */
         }
 
         #canvas-container {
@@ -291,7 +291,7 @@
             width: var(--container-width);
             height: var(--container-height);
             margin: 0 auto;
-            overflow: hidden;
+            overflow: visible; /* Allow content to expand beyond initial height */
         }
 
         canvas {
@@ -315,7 +315,7 @@
         :root {
             --scale-factor: 0.8;
             --container-width: 1536px;  /* Will be set by JavaScript */
-            --container-height: 760px;  /* Will be set by JavaScript */
+            --container-height: 760px;  /* Will be set by JavaScript - can be updated dynamically */
         }
         
         /* Responsive media queries removed - using fixed scale with manual zoom controls */
