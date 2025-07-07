@@ -95,7 +95,7 @@ export const textShadowBlur = scaled(4); // Blur amount for text shadow (smoothe
 export const textShadowOpacity = 1.0; // Opacity of text shadow (0.0 to 1.0)
 
 // Font settings
-export const fontFamily = 'Montserrat'; // Main font for the application
+export const fontFamily = 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif'; // Main font for the application
 
 // Grid positioning system
 // Grid origin point - serves as the anchor for all relative positioning
