@@ -257,7 +257,7 @@ function showRoom(event) {
     updateCombinedPortsAndConnections();
     
     // Resize canvas to fit the active room
-    // resizeCanvasToActiveRoom();
+    resizeCanvasToActiveRoom();
     
     // Mark all layers as dirty to trigger redraw
     markAllLayersAsDirty();
