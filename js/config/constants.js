@@ -6,7 +6,7 @@
  * Fixed scale factor for room sizing
  * Static value - no longer reads from CSS variable
  */
-export const SCALE_FACTOR = 0.86;
+export const SCALE_FACTOR = 0.89;
 
 /**
  * Helper function to apply fixed scaling
@@ -39,7 +39,7 @@ export const LAYERS = {
 // Port and spacing dimensions
 export const portRadius = scaled(9); // Scaled for 1920x1080 resolution
 export const safeZoneRadius = scaled(portRadius * 1.5); // Match the highlight and selection radius
-export const margin = scaled(12); // Set to match roomBoxTopPadding so outer box edges touch canvas edges
+export const margin = scaled(10); // Set to match roomBoxTopPadding so outer box edges touch canvas edges
 export const portSpacing = scaled(32); // Scaled for 1920x1080 resolution
 export const rowSpacing = scaled(74); // Scaled for 1920x1080 resolution
 export const sectionSpacing = scaled(77); // Scaled for 1920x1080 resolution
@@ -50,8 +50,8 @@ export const canvasWidth = scaled(1920); // Updated to 1920x1080 (Full HD) resol
 export const canvasHeight = scaled(950); // Reduced to better fit grid content
 
 // Container dimensions - driven by canvas dimensions
-export const containerWidth = canvasWidth;   // 1536px
-export const containerHeight = canvasHeight; // 760px
+export const containerWidth = canvasWidth;   
+export const containerHeight = canvasHeight; 
 
 // Cable appearance
 export const cableStrokeWeight = scaled(6); // Scaled for 1920x1080 resolution
@@ -111,7 +111,7 @@ export const gridBounds = {
     top: scaled(0),     // Reduced top padding to prevent negative bounds
     right: scaled(50),   // Right padding
     bottom: scaled(-35),  // Bottom padding
-    left: scaled(0)     // Left padding
+    left: scaled(-5)     // Left padding
   }
 };
 
