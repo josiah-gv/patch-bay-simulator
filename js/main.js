@@ -162,10 +162,19 @@ window.setup = function() {
       markAllLayersAsDirty();
     });
 
+    // Remove the p5.js createButton calls and replace with proper UI integration
     // Create a Clear All button
-    const btn = createButton("Clear All Patches");
-    btn.position(10, appState.canvasHeight + 10);
-    btn.mousePressed(() => clearAllPatches(appState));
+    // const btn = createButton("Clear All Patches");
+    // btn.position(10, appState.canvasHeight + 10);
+    // btn.mousePressed(() => clearAllPatches(appState));
+    
+    // Create a Reload Rooms button
+    // const reloadBtn = createButton("Reload Rooms");
+    // reloadBtn.position(150, appState.canvasHeight + 10);
+    // reloadBtn.mousePressed(() => window.reloadRooms());
+    
+    // Create proper UI controls
+    createControlButtons();
     
     console.log('Setup completed successfully');
   } catch (error) {
@@ -518,3 +527,121 @@ window.keyPressed = function() {
 };
 
 // Note: Dynamic scaling system removed
+
+// Add this function after the setup function
+window.reloadRooms = async function() {
+  console.log('Manually reloading rooms...');
+  try {
+    const rooms = await loadRooms();
+    appState.rooms = rooms;
+    
+    // Clear existing room states
+    appState.roomStates = {};
+    
+    // Reinitialize room states
+    rooms.forEach(room => {
+      appState.roomStates[room.name] = {
+        visible: false,
+        ports: [],
+        connections: [],
+        yOffset: 0
+      };
+    });
+    
+    // Regenerate toggle buttons
+    generateRoomToggleButtons(rooms);
+    
+    // Clear active room
+    appState.activeRoomId = null;
+    appState.connections = [];
+    appState.ports = [];
+    
+    // Mark all layers as dirty
+    markAllLayersAsDirty();
+    
+    console.log('Rooms reloaded successfully!');
+  } catch (error) {
+    console.error('Error reloading rooms:', error);
+  }
+};
+
+// Add reload button in setup function
+// After the "Clear All Patches" button:
+const reloadBtn = createButton("Reload Rooms");
+reloadBtn.position(150, appState.canvasHeight + 10);
+reloadBtn.mousePressed(() => window.reloadRooms());
+
+/**
+ * Create control buttons that integrate with the UI
+ */
+function createControlButtons() {
+  const patchBaySection = document.querySelector('.patch-bay-section');
+  if (!patchBaySection) {
+    console.error('Patch bay section not found');
+    return;
+  }
+  
+  // Create controls container
+  const controlsContainer = document.createElement('div');
+  controlsContainer.style.cssText = `
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    justify-content: center;
+  `;
+  
+  // Create Clear All button
+  const clearBtn = document.createElement('button');
+  clearBtn.textContent = 'Clear All Patches';
+  clearBtn.style.cssText = `
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  `;
+  clearBtn.addEventListener('mouseenter', () => {
+    clearBtn.style.background = 'rgba(239, 68, 68, 0.2)';
+    clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+  });
+  clearBtn.addEventListener('mouseleave', () => {
+    clearBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+    clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+  });
+  clearBtn.addEventListener('click', () => clearAllPatches(appState));
+  
+  // Create Reload Rooms button
+  const reloadBtn = document.createElement('button');
+  reloadBtn.textContent = 'Reload Rooms';
+  reloadBtn.style.cssText = `
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  `;
+  reloadBtn.addEventListener('mouseenter', () => {
+    reloadBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+    reloadBtn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+  });
+  reloadBtn.addEventListener('mouseleave', () => {
+    reloadBtn.style.background = 'rgba(16, 185, 129, 0.1)';
+    reloadBtn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+  });
+  reloadBtn.addEventListener('click', () => window.reloadRooms());
+  
+  // Add buttons to container
+  controlsContainer.appendChild(clearBtn);
+  controlsContainer.appendChild(reloadBtn);
+  
+  // Add container to patch bay section
+  patchBaySection.appendChild(controlsContainer);
+}

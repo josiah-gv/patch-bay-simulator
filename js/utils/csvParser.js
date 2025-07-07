@@ -25,7 +25,9 @@ async function loadRooms() {
         console.log(`Attempting to load room: ${roomName}`);
         
         try {
-          const csvResponse = await fetch(`rooms/${csvFile}`);
+          // Add cache-busting parameter to force fresh load
+          const cacheBuster = Date.now();
+          const csvResponse = await fetch(`rooms/${csvFile}?v=${cacheBuster}`);
           if (!csvResponse.ok) {
             console.error(`Failed to load room ${roomName}: ${csvResponse.status} ${csvResponse.statusText}`);
             continue; // Skip this file and continue with others
@@ -85,7 +87,9 @@ async function discoverCSVFiles() {
     // Test each known file to see if it exists
     for (const file of knownFiles) {
       try {
-        const response = await fetch(`rooms/${file}`, { method: 'HEAD' });
+        // Add cache-busting parameter to force fresh load
+        const cacheBuster = Date.now();
+        const response = await fetch(`rooms/${file}?v=${cacheBuster}`, { method: 'HEAD' });
         if (response.ok) {
           existingFiles.push(file);
         }
