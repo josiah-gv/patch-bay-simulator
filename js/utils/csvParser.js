@@ -78,7 +78,7 @@ async function discoverCSVFiles() {
     // Since we can't directly list directory contents from the browser,
     // we'll try to load known files and also attempt common patterns
     const knownFiles = [
-      'Dry Foley2.csv',
+      '1862 Edit Suite 2.csv',
       '1863 Server Room.csv'
     ];
     
