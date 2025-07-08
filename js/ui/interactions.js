@@ -42,6 +42,12 @@ function mousePressed(p5, state) {
   if (port !== null && !port.isDead) {
     // If we have an active cable, try to connect it
     if (state.activeCable !== null) {
+      // Check if trying to connect to the same port the cable originated from
+      if (port.id === state.activeCable) {
+        console.log('Cannot connect cable to the same port it originated from');
+        return;
+      }
+      
       // Check if the port is already connected
       const isPortConnected = state.connections.some(conn => 
         conn.from === port.id || conn.to === port.id
