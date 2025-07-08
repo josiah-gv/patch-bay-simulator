@@ -69,8 +69,8 @@ export const groupLabelTextSize = scaled(16); // Scaled for 1920x1080 resolution
 export const channelNumberTextSize = scaled(13); // Scaled for 1920x1080 resolution
 
 // Padding values
-export const topLabelPadding = scaled(62); // Scaled for 1920x1080 resolution
-export const bottomLabelPadding = scaled(62); // Scaled for 1920x1080 resolution
+export const topLabelPadding = scaled(50); // Scaled for 1920x1080 resolution
+export const bottomLabelPadding = scaled(50); // Scaled for 1920x1080 resolution
 export const channelNumberPadding = scaled(31); // Scaled for 1920x1080 resolution
 
 // Group box padding

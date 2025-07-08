@@ -45,19 +45,68 @@
             position: relative; /* For absolute positioning of sidebar */
         }
 
+        .sidebar-wrapper {
+            position: sticky;
+            top: 95px; /* Stick below header */
+            height: calc(100vh - 100px); /* Account for header height */
+            width: 0; /* No width when collapsed */
+            overflow: visible;
+            z-index: 50;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-wrapper.expanded {
+            width: 320px; /* Expand to full width when open */
+        }
+
         .sidebar {
             width: 320px;
             background: rgba(15, 15, 17, 0.8); /* Slightly more transparent */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px); /* For Safari */
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 40px 32px;
+            padding: 20px 32px 40px 32px; /* Reduced top padding since wrapper handles positioning */
             flex-shrink: 0;
             position: absolute;
-            min-height: 800px; /* Minimum height, can expand */
+            height: 100%;
+            top: 0;
             left: -320px; /* Start collapsed */
-            transition: left 0.3s ease-in-out;
-            z-index: 50;
+            transition: left 0.3s ease;
+            overflow-y: auto; /* Allow scrolling within sidebar if content overflows */
+        }
+        
+        /* Custom scrollbar styling for sidebar */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 4px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Auto-hide scrollbar when not scrolling */
+        .sidebar:not(:hover)::-webkit-scrollbar-thumb {
+            opacity: 0;
+        }
+        
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            opacity: 1;
         }
         
         .sidebar.expanded {
@@ -65,9 +114,9 @@
         }
         
         .sidebar-toggle {
-            position: absolute;
-            top: 20px;
-            right: -40px;
+            position: fixed;
+            top: 125px;
+            left: 0px;
             width: 40px;
             height: 40px;
             background: rgba(15, 15, 17, 0.9);
@@ -79,7 +128,7 @@
             align-items: center;
             cursor: pointer;
             z-index: 51;
-            transition: background 0.2s ease;
+            transition: all 0.3s ease;
         }
         
         .sidebar-toggle:hover {
@@ -107,9 +156,9 @@
             transition: transform 0.3s ease;
         }
         
-        /* When sidebar is expanded, show left arrow */
-        .sidebar.expanded .sidebar-toggle-icon:before {
-            transform: rotate(-135deg);
+        /* When sidebar is expanded, rotate arrow 180 degrees to point inward */
+        .sidebar-wrapper.expanded ~ .main-content .sidebar-toggle-icon:before {
+            transform: rotate(225deg);
         }
         
         /* Animated hamburger icon */
@@ -335,37 +384,39 @@
     </div>
     
     <div class="container">
-        <div class="sidebar">
-            <div class="sidebar-toggle">
-                <div class="sidebar-toggle-icon"></div>
-            </div>
-            <div class="sidebar-section">
-                <h3>Usage Guide</h3>
-                <div class="tip-card">
-                    <h4>Cable Connections</h4>
-                    <p>Click and drag from any output port to an input port to create audio connections. Cables will follow realistic physics.</p>
+        <div class="sidebar-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Usage Guide</h3>
+                    <div class="tip-card">
+                        <h4>Cable Connections</h4>
+                        <p>Click and drag from any output port to an input port to create audio connections. Cables will follow realistic physics.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <h4>Port Management</h4>
+                        <p>Hover over ports to see connection details. Active connections are highlighted with visual indicators.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <h4>Room Navigation</h4>
+                        <p>Select different studio rooms from the room selector above to switch between various patch bay configurations.</p>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <h4>Label System</h4>
+                        <p>Each port displays clear labels showing input/output designations and connection types for easy identification.</p>
+                    </div>
                 </div>
                 
-                <div class="tip-card">
-                    <h4>Port Management</h4>
-                    <p>Hover over ports to see connection details. Active connections are highlighted with visual indicators.</p>
-                </div>
-                
-                <div class="tip-card">
-                    <h4>Room Navigation</h4>
-                    <p>Select different studio rooms from the room selector above to switch between various patch bay configurations.</p>
-                </div>
-                
-                <div class="tip-card">
-                    <h4>Label System</h4>
-                    <p>Each port displays clear labels showing input/output designations and connection types for easy identification.</p>
-                </div>
-            </div>
-            
 
+            </div>
         </div>
         
         <div class="main-content">
+            <div class="sidebar-toggle">
+                <div class="sidebar-toggle-icon"></div>
+            </div>
             <div class="room-selector">
                 <h2>Studio Room Selection</h2>
                 <div class="room-grid">
@@ -389,14 +440,20 @@
         // Sidebar toggle functionality
         document.querySelector('.sidebar-toggle').addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('expanded');
+            const sidebarWrapper = document.querySelector('.sidebar-wrapper');
+            const toggleButton = this;
             
-            // Update toggle icon appearance
+            sidebar.classList.toggle('expanded');
+            sidebarWrapper.classList.toggle('expanded');
+            
+            // Update toggle icon appearance and position
             const toggleIcon = this.querySelector('.sidebar-toggle-icon');
             if (sidebar.classList.contains('expanded')) {
                 toggleIcon.classList.add('active');
+                toggleButton.style.left = '320px';
             } else {
                 toggleIcon.classList.remove('active');
+                toggleButton.style.left = '0px';
             }
         });
     </script>
