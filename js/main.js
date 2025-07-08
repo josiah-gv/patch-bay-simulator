@@ -374,7 +374,6 @@ function generateRoomToggleButtons(rooms) {
      button.innerHTML = `
        <span class="room-icon">${icon}</span>
        <h3>${room.name}</h3>
-       <p>Toggle room display</p>
      `;
     
     // Add click event listener for single room display
