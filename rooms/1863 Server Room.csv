@@ -28,8 +28,9 @@ pMTRXO-01,pMTRXO-02,pMTRXO-03,pMTRXO-04,pMTRXO-05,pMTRXO-06,pMTRXO-07,pMTRXO-08,
 ,,,,,,,,,,p1860L-hpl,p1860L-hpr,p1860R-hpl,p1860R-hpr,pQSC-01,pQSC-02,pQSC-03,pQSC-04,pQSC-05,pQSC-06,pQSC-07,pQSC-08,pQSC-09,pQSC-10,pMTRXI-01,pMTRXI-02,pMTRXI-03,pMTRXI-04,pMTRXI-05,pMTRXI-06,pMTRXI-07,pMTRXI-08,pMTRXI-09,pMTRXI-10,pMTRXI-11,pMTRXI-12,pMTRXI-13,pMTRXI-14,pMTRXI-15,pMTRXI-16,pQSC-TB,pQSC-22,pQSC-23,pQSC-24,pQSC-25,pQSC-26,pQSC-27,pQSC-28
 ,,,,,,,,,,HPL,HPR,HPL,HPR,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,TB,22,23,24,25,26,27,28
 ,,,,1860 THX HP AMPS -->,,,,,,DESK L,,DESK R,,L,R,C,LFE,Lss,Rss,Lsr,Rsr,NFL,NFR,1860 THX AVID MTRX I/P,,,,,,,,,,,,,,,,1860 THX QSC 510I DRIVE I/P,,,,,,,
-1861 - PT,,,,1861 - FLT,,,,1862 - PT,,,,1862 - FLT,,,,1872 - PT,,,,1872 - FLT,,,,1873 - PT,,,,1873 - FLT,,,,1867A - PT,,,,,,,,,,,,,,,
+1861 - PT,,,,1861 - FLT,,,,1862 - PT,,,,1862 - FLT,,,,1872 - PT,,,,1872 - FLT,,,,1873 - PT,,,,1873 - FLT,,,,1867A - PT,,,end,,,,,,,,,,,,
+TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,TRK,TRK,MIC,CUE,,,,,,,,,,,,
 p1861-pt-tkl,p1861-pt-tkr,p1861-pt-mc,p1861-pt-cu,p1861-fl-tkl,p1861-fl-tkr,p1861-fl-mc,p1861-fl-cu,p1862-pt-tkl,p1862-pt-tkr,p1862-pt-mc,p1862-pt-cu,p1862-fl-tkl,p1862-fl-tkr,p1862-fl-mc,p1862-fl-cu,p1872-pt-tkl,p1872-pt-tkr,p1872-pt-mc,p1872-pt-cu,p1872-fl-tkl,p1872-fl-tkr,p1872-fl-mc,p1872-fl-cu,p1873-pt-tkl,p1873-pt-tkr,p1873-pt-mc,p1873-pt-cu,p1873-fl-tkl,p1873-fl-tkr,p1873-fl-mc,p1873-fl-cu,p1867a-pt-tkl,p1867a-pt-tkr,p1867a-pt-mc,p1867a-pt-cu,,,,,,,,,,,,
 ,,,,pQSC-FLX-01,pQSC-FLX-02,pQSC-FLX-03,pQSC-FLX-04,,,,,pQSC-FLX-05,pQSC-FLX-06,pQSC-FLX-07,pQSC-FLX-08,,,,,p110FI-01,p110FI-02,p110FI-03,p110FI-04,,,,,p110FO-01,p110FO-02,p110FO-03,p110FO-04,p110FO-05,p110FO-06,p110FO-07,p110FO-08,,,,,,,,,,,,
-,,,,1,2,3,4,,,,,1,2,3,4,,,,,1,2,3,4,,,,,1,2,3,4,1,2,3,4,,,,,,,,,,,,
-,,,,QSC FLEX8 1-4,,,END,,,,,QSC FLEX8 5-8,,,END,,,,,110F 1848 I/P 1-4,,,END,,,,,110F 1848 FLEX 1-4,,,END,110F 1848 FLEX 5-8,,,END,,,,,,,,,,,,
+,,,,1,2,3,4,,,,,1,2,3,4,,,,,1,2,3,4,,,,,1,2,3,4,5,6,7,8,,,,,,,,,,,,
+,,,,QSC FLEX8 1-4,,,END,,,,,QSC FLEX8 5-8,,,END,,,,,110F 1848 I/P 1-4,,,END,,,,,110F 1848 FLEX 1-8,,,,,,,end,,,,,,,,,,,,
